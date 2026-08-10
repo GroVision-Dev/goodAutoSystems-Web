@@ -8,6 +8,25 @@ const CATEGORY_LABEL: Record<string, string> = {
   AI_SERVICE: "AI 자동화",
 };
 
+/** 상품별 실행 화면 이미지 */
+const PRODUCT_IMAGE: Record<string, { src: string; alt: string; caption: string }> = {
+  "goodauto-pro": {
+    src: "/images/goodauto-pro-ui.svg",
+    alt: "GoodAuto Pro 시나리오 편집기 실행 화면",
+    caption: "GoodAuto Pro 실행 화면 — 시나리오 편집기와 실시간 실행 로그",
+  },
+  "ai-automation-starter": {
+    src: "/images/ai-docs-dashboard.svg",
+    alt: "AI 문서 자동 분류·요약 대시보드 화면",
+    caption: "AI 문서 자동 분류·요약 대시보드 — 실시간 처리 현황",
+  },
+  "ai-automation-enterprise": {
+    src: "/images/ai-report-dashboard.svg",
+    alt: "경영 보고서 자동 생성 대시보드 화면",
+    caption: "경영 보고서 자동 생성 — 데이터 집계부터 리포트 발송까지",
+  },
+};
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -45,6 +64,20 @@ export default async function ProductDetailPage({
       </span>
       <h1 className="mt-4 text-3xl font-bold">{product.name}</h1>
       <p className="mt-3 text-lg text-muted">{product.summary}</p>
+
+      {PRODUCT_IMAGE[product.slug] && (
+        <figure className="mt-10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={PRODUCT_IMAGE[product.slug].src}
+            alt={PRODUCT_IMAGE[product.slug].alt}
+            className="w-full rounded-2xl border border-line"
+          />
+          <figcaption className="mt-3 text-center text-xs text-muted">
+            {PRODUCT_IMAGE[product.slug].caption}
+          </figcaption>
+        </figure>
+      )}
 
       <div className="mt-10 grid gap-8 md:grid-cols-[1fr_280px]">
         <div className="rounded-2xl border border-line bg-surface p-8">

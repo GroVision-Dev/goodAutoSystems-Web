@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" font-family="'Pretendard','Segoe UI','Apple SD Gothic Neo',sans-serif">
+  <defs>
+    <linearGradient id="wfGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1d4ed8" stop-opacity="0.18"/>
+      <stop offset="0.5" stop-color="#0a0f1e" stop-opacity="0"/>
+      <stop offset="1" stop-color="#22d3ee" stop-opacity="0.14"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9" fill="none" stroke="#3b82f6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="420" fill="#0a0f1e"/>
+  <rect width="1200" height="420" fill="url(#wfGlow)"/>
+
+  <text x="80" y="70" fill="#e2e8f0" font-size="20" font-weight="700">업무 자동화 파이프라인</text>
+  <text x="80" y="96" fill="#64748b" font-size="13">데이터 수집부터 보고까지, 사람 손을 거치지 않고 흘러갑니다</text>
+
+  <!-- 노드 1: 데이터 수집 -->
+  <g>
+    <rect x="80" y="150" width="220" height="160" rx="14" fill="#111a2e" stroke="#233252"/>
+    <rect x="80" y="150" width="220" height="4" rx="2" fill="#3b82f6"/>
+    <rect x="104" y="178" width="40" height="40" rx="10" fill="#3b82f6" opacity="0.18"/>
+    <text x="124" y="204" text-anchor="middle" fill="#3b82f6" font-size="18">⇣</text>
+    <text x="104" y="248" fill="#e2e8f0" font-size="16" font-weight="700">데이터 수집</text>
+    <text x="104" y="274" fill="#64748b" font-size="12">웹사이트 · 이메일 · 엑셀</text>
+    <text x="104" y="292" fill="#64748b" font-size="12">사내 시스템</text>
+  </g>
+
+  <line x1="300" y1="230" x2="366" y2="230" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="1 0"/>
+
+  <!-- 노드 2: AI 처리 -->
+  <g>
+    <rect x="372" y="150" width="220" height="160" rx="14" fill="#111a2e" stroke="#22d3ee"/>
+    <rect x="372" y="150" width="220" height="4" rx="2" fill="#22d3ee"/>
+    <rect x="396" y="178" width="40" height="40" rx="10" fill="#22d3ee" opacity="0.15"/>
+    <text x="416" y="205" text-anchor="middle" fill="#22d3ee" font-size="16">AI</text>
+    <text x="396" y="248" fill="#e2e8f0" font-size="16" font-weight="700">AI 분류·정제</text>
+    <text x="396" y="274" fill="#64748b" font-size="12">문서 판독 · 데이터 검증</text>
+    <text x="396" y="292" fill="#64748b" font-size="12">요약 · 예외 감지</text>
+  </g>
+
+  <line x1="592" y1="230" x2="658" y2="230" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 노드 3: 시스템 입력 -->
+  <g>
+    <rect x="664" y="150" width="220" height="160" rx="14" fill="#111a2e" stroke="#233252"/>
+    <rect x="664" y="150" width="220" height="4" rx="2" fill="#3b82f6"/>
+    <rect x="688" y="178" width="40" height="40" rx="10" fill="#3b82f6" opacity="0.18"/>
+    <text x="708" y="204" text-anchor="middle" fill="#3b82f6" font-size="15">⚙</text>
+    <text x="688" y="248" fill="#e2e8f0" font-size="16" font-weight="700">시스템 자동 입력</text>
+    <text x="688" y="274" fill="#64748b" font-size="12">ERP · 그룹웨어 · DB</text>
+    <text x="688" y="292" fill="#64748b" font-size="12">입력 오류 0건</text>
+  </g>
+
+  <line x1="884" y1="230" x2="950" y2="230" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- 노드 4: 보고/알림 -->
+  <g>
+    <rect x="956" y="150" width="164" height="160" rx="14" fill="#111a2e" stroke="#233252"/>
+    <rect x="956" y="150" width="164" height="4" rx="2" fill="#22d3ee"/>
+    <rect x="980" y="178" width="40" height="40" rx="10" fill="#22d3ee" opacity="0.15"/>
+    <text x="1000" y="204" text-anchor="middle" fill="#22d3ee" font-size="15">✓</text>
+    <text x="980" y="248" fill="#e2e8f0" font-size="16" font-weight="700">보고·알림</text>
+    <text x="980" y="274" fill="#64748b" font-size="12">리포트 자동 생성</text>
+    <text x="980" y="292" fill="#64748b" font-size="12">메신저 알림</text>
+  </g>
+
+  <!-- 하단 라벨 -->
+  <rect x="80" y="346" width="1040" height="1" fill="#1e293b"/>
+  <circle cx="92" cy="382" r="4" fill="#22c55e"/>
+  <text x="106" y="387" fill="#94a3b8" font-size="13">24시간 무인 실행</text>
+  <circle cx="262" cy="382" r="4" fill="#22c55e"/>
+  <text x="276" y="387" fill="#94a3b8" font-size="13">실패 시 자동 재시도 및 담당자 알림</text>
+  <circle cx="560" cy="382" r="4" fill="#22c55e"/>
+  <text x="574" y="387" fill="#94a3b8" font-size="13">전 단계 실행 로그 기록</text>
+  <circle cx="790" cy="382" r="4" fill="#22c55e"/>
+  <text x="804" y="387" fill="#94a3b8" font-size="13">기존 시스템 변경 없이 도입</text>
+</svg>

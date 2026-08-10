@@ -69,6 +69,50 @@ export default function ServicesPage() {
         ))}
       </div>
 
+      {/* 자동화 파이프라인 */}
+      <figure className="mt-16">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/workflow-diagram.svg"
+          alt="데이터 수집부터 AI 처리, 시스템 입력, 보고까지 이어지는 업무 자동화 파이프라인"
+          className="w-full rounded-2xl border border-line"
+        />
+        <figcaption className="mt-3 text-center text-xs text-muted">
+          구축되는 자동화 파이프라인 — 수집부터 보고까지 사람 손을 거치지 않습니다
+        </figcaption>
+      </figure>
+
+      {/* 실제 화면 */}
+      <h2 className="mt-20 text-2xl font-bold">실제 구축 화면</h2>
+      <p className="mt-3 max-w-2xl text-muted">
+        도입 기업에 제공되는 자동화 워크스페이스 화면입니다. 처리 현황과 성과를
+        한눈에 확인할 수 있습니다.
+      </p>
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        <figure>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/ai-docs-dashboard.svg"
+            alt="AI 문서 자동 분류·요약 대시보드"
+            className="w-full rounded-2xl border border-line transition hover:border-accent/50"
+          />
+          <figcaption className="mt-3 text-center text-xs text-muted">
+            AI 문서 자동 분류·요약 대시보드
+          </figcaption>
+        </figure>
+        <figure>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/ai-report-dashboard.svg"
+            alt="경영 보고서 자동 생성 대시보드"
+            className="w-full rounded-2xl border border-line transition hover:border-accent/50"
+          />
+          <figcaption className="mt-3 text-center text-xs text-muted">
+            경영 보고서 자동 생성 대시보드
+          </figcaption>
+        </figure>
+      </div>
+
       <h2 className="mt-20 text-2xl font-bold">활용 사례</h2>
       <div className="mt-8 grid gap-6 md:grid-cols-2">
         {USE_CASES.map((item) => (
