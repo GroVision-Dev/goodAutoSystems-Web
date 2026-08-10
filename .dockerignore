@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+docs
+prisma/dev.db
+prisma/dev.db-journal
+.env
+.env.*
+*.md
+scaffold-tmp
+Dockerfile
+docker-compose.yml

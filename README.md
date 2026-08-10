@@ -7,19 +7,36 @@
 
 - Next.js 16 (App Router, TypeScript, Turbopack)
 - Tailwind CSS v4 — 다크 네이비 테마
-- Prisma 6 + SQLite (`prisma/dev.db`)
+- Prisma 6 + PostgreSQL 16 (Docker)
 - Auth.js(next-auth v5) Credentials — 웹 세션
 - jose(JWT) — 데스크톱 프로그램 인증 API
 - 토스페이먼츠 결제위젯 v2 — 단건 결제
 
-## 실행 방법
+## 로컬 개발 실행
 
 ```bash
 npm install
-npx prisma db push      # DB 스키마 생성
-npx prisma db seed      # 시드 데이터 (계정/상품)
-npm run dev             # http://localhost:3000
+docker compose up -d db   # 개발용 PostgreSQL 기동 (호스트 5434 포트)
+npx prisma db push        # DB 스키마 생성
+npx prisma db seed        # 시드 데이터 (계정/상품)
+npm run dev               # http://localhost:3000
 ```
+
+## 운영서버 Docker 배포
+
+서버에 Docker + Docker Compose만 있으면 됩니다.
+
+```bash
+git clone <repo> && cd goodAutoSystems-Web
+cp .env.production.example .env   # 값 채우기 (DB 비밀번호, 시크릿, 토스 실키, 도메인)
+docker compose up --build -d
+```
+
+- 구성: `db`(PostgreSQL 16, `pgdata` 볼륨 영속화) → `migrate`(스키마 반영+시드 후 종료) → `web`(Next.js standalone)
+- 최초 기동 시 관리자 계정(`admin@goodautosystems.com`, 비밀번호는 `SEED_ADMIN_PASSWORD`)과 기본 상품이 자동 생성됩니다
+- `private-files/`는 호스트 바인드 마운트라 설치 파일을 서버에서 교체하면 재빌드 없이 반영됩니다
+- 재배포: `git pull && docker compose up --build -d`
+- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 3000)로 프록시하세요. `AUTH_URL`을 실제 도메인으로 설정해야 결제 리다이렉트와 로그인이 정상 동작합니다.
 
 ### 시드 계정
 
