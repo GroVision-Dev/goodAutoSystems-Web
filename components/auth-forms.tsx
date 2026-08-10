@@ -59,7 +59,54 @@ export function LoginForm() {
 export function RegisterForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  function startCooldown(seconds: number) {
+    setCooldown(seconds);
+    const timer = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  async function handleSendCode(e: React.MouseEvent<HTMLButtonElement>) {
+    const form = e.currentTarget.closest("form");
+    const email = (form?.elements.namedItem("email") as HTMLInputElement)?.value;
+    setError(null);
+    setNotice(null);
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setError("이메일을 먼저 입력해 주세요.");
+      return;
+    }
+
+    setSending(true);
+    const res = await fetch("/api/auth/send-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    setSending(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      setError(data?.error ?? "인증코드 발송에 실패했습니다.");
+      return;
+    }
+
+    setCodeSent(true);
+    setNotice("인증코드를 발송했습니다. 메일함(스팸함 포함)을 확인해 주세요.");
+    startCooldown(60);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -70,9 +117,14 @@ export function RegisterForm() {
     const password = form.get("password") as string;
     const passwordConfirm = form.get("passwordConfirm") as string;
     const name = form.get("name") as string;
+    const code = form.get("code") as string;
 
     if (password !== passwordConfirm) {
       setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    if (!code) {
+      setError("이메일로 받은 인증코드를 입력해 주세요.");
       return;
     }
 
@@ -80,7 +132,7 @@ export function RegisterForm() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ email, password, name, code }),
     });
 
     if (!res.ok) {
@@ -99,7 +151,41 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input name="name" type="text" required placeholder="이름" className={inputClass} />
-      <input name="email" type="email" required placeholder="이메일" className={inputClass} />
+      <div className="flex gap-2">
+        <input
+          name="email"
+          type="email"
+          required
+          placeholder="이메일"
+          className={inputClass}
+        />
+        <button
+          type="button"
+          onClick={handleSendCode}
+          disabled={sending || cooldown > 0}
+          className="shrink-0 rounded-lg border border-accent/60 px-4 py-3 text-sm font-medium text-accent transition hover:bg-accent/10 disabled:opacity-50"
+        >
+          {sending
+            ? "발송 중..."
+            : cooldown > 0
+              ? `재발송 (${cooldown}s)`
+              : codeSent
+                ? "재발송"
+                : "인증코드 발송"}
+        </button>
+      </div>
+      {codeSent && (
+        <input
+          name="code"
+          type="text"
+          inputMode="numeric"
+          maxLength={6}
+          required
+          placeholder="인증코드 6자리"
+          className={inputClass}
+        />
+      )}
+      {notice && <p className="text-sm text-accent">{notice}</p>}
       <input
         name="password"
         type="password"

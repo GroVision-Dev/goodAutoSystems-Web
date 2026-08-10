@@ -50,6 +50,12 @@ services:
       PROGRAM_JWT_SECRET: ${PROGRAM_JWT_SECRET:?PROGRAM_JWT_SECRET을 .env에 설정하세요}
       NEXT_PUBLIC_TOSS_CLIENT_KEY: ${NEXT_PUBLIC_TOSS_CLIENT_KEY}
       TOSS_SECRET_KEY: ${TOSS_SECRET_KEY}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       # 프로그램 설치 파일: 호스트에서 교체하면 재빌드 없이 반영
       - ./private-files:/app/private-files:ro
