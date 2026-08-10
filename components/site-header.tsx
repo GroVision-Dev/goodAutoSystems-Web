@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { href: "/products", label: "상품소개" },
   { href: "/services", label: "서비스" },
   { href: "/about", label: "회사소개" },
+  { href: "/#contact", label: "도입문의" },
 ];
 
 export default async function SiteHeader() {

@@ -75,12 +75,44 @@ export default async function ProductDetailPage({
               구매하기
             </Link>
           )}
-          {product.category === "PROGRAM" && (
-            <p className="mt-4 text-xs leading-relaxed text-muted">
-              구매 후 마이페이지에서 설치 파일을 다운로드하고, 웹 계정으로
-              프로그램에 로그인해 사용합니다.
-            </p>
+          {product.category === "PROGRAM" ? (
+            <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
+              <li className="flex gap-2">
+                <span className="font-bold text-accent">1</span>
+                토스페이먼츠로 안전하게 결제
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold text-accent">2</span>
+                마이페이지에서 설치 파일 다운로드
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold text-accent">3</span>
+                홈페이지 계정으로 프로그램 로그인 후 바로 사용
+              </li>
+            </ol>
+          ) : (
+            <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
+              <li className="flex gap-2">
+                <span className="font-bold text-accent">1</span>
+                토스페이먼츠로 안전하게 결제
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold text-accent">2</span>
+                담당 매니저가 영업일 1일 내 연락드려 일정 협의
+              </li>
+              <li className="flex gap-2">
+                <span className="font-bold text-accent">3</span>
+                업무 진단 후 구축 착수
+              </li>
+            </ol>
           )}
+          <p className="mt-5 text-[11px] leading-relaxed text-muted">
+            결제 관련 규정은{" "}
+            <Link href="/terms" className="underline hover:text-foreground">
+              이용약관
+            </Link>
+            의 청약철회 및 환불 조항을 따릅니다.
+          </p>
         </div>
       </div>
     </div>
