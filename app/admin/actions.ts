@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { cancelPayment, TossConfirmError } from "@/lib/toss";
 
 async function requireAdmin() {
   const session = await auth();
@@ -19,12 +20,81 @@ export async function toggleUserStatus(userId: string) {
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error("회원을 찾을 수 없습니다.");
+  if (user.status === "WITHDRAWN") throw new Error("탈퇴한 회원입니다.");
 
   await prisma.user.update({
     where: { id: userId },
     data: { status: user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE" },
   });
   revalidatePath("/admin/users");
+}
+
+export async function toggleUserRole(userId: string) {
+  const session = await requireAdmin();
+  if (userId === session.user.id) throw new Error("본인 권한은 변경할 수 없습니다.");
+
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error("회원을 찾을 수 없습니다.");
+  if (user.status === "WITHDRAWN") throw new Error("탈퇴한 회원입니다.");
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { role: user.role === "ADMIN" ? "USER" : "ADMIN" },
+  });
+  revalidatePath("/admin/users");
+}
+
+export interface CancelOrderState {
+  error?: string;
+  ok?: boolean;
+}
+
+/** 결제 취소(환불): 토스 취소 API 호출 후 주문을 CANCELED로 전환 */
+export async function cancelOrder(
+  _prev: CancelOrderState,
+  formData: FormData
+): Promise<CancelOrderState> {
+  await requireAdmin();
+
+  const orderId = formData.get("orderId") as string;
+  const reason = ((formData.get("reason") as string) || "관리자 취소").trim();
+
+  const order = await prisma.order.findUnique({ where: { orderId } });
+  if (!order) return { error: "주문을 찾을 수 없습니다." };
+  if (order.status !== "PAID") return { error: "결제 완료 상태의 주문만 취소할 수 있습니다." };
+
+  if (order.paymentKey) {
+    try {
+      await cancelPayment(order.paymentKey, reason);
+    } catch (e) {
+      const message =
+        e instanceof TossConfirmError ? e.message : "결제 취소 중 오류가 발생했습니다.";
+      return { error: `토스 결제취소 실패: ${message}` };
+    }
+  }
+  // paymentKey가 없는 주문(테스트 데이터)은 토스 호출 없이 상태만 변경한다.
+
+  await prisma.order.update({
+    where: { orderId },
+    data: { status: "CANCELED", failReason: reason },
+  });
+  revalidatePath("/admin/orders");
+  revalidatePath("/mypage");
+  return { ok: true };
+}
+
+export async function deleteProduct(productId: string) {
+  await requireAdmin();
+
+  const orderCount = await prisma.order.count({ where: { productId } });
+  if (orderCount > 0) {
+    throw new Error("주문 이력이 있는 상품은 삭제할 수 없습니다. 대신 숨김 처리하세요.");
+  }
+
+  await prisma.product.delete({ where: { id: productId } });
+  revalidatePath("/admin/products");
+  revalidatePath("/products");
+  revalidatePath("/");
 }
 
 const productSchema = z.object({

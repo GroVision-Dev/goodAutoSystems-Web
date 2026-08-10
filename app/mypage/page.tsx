@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import AccountSettings from "@/components/account-settings";
 
 export const metadata: Metadata = { title: "마이페이지" };
 
@@ -17,11 +18,15 @@ export default async function MyPage() {
   const session = await auth();
   if (!session) redirect("/login?callbackUrl=/mypage");
 
-  const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
-    include: { product: true },
-    orderBy: { createdAt: "desc" },
-  });
+  const [user, orders] = await Promise.all([
+    prisma.user.findUnique({ where: { id: session.user.id } }),
+    prisma.order.findMany({
+      where: { userId: session.user.id },
+      include: { product: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+  if (!user) redirect("/login");
 
   const purchasedPrograms = orders.filter(
     (order) =>
@@ -40,17 +45,23 @@ export default async function MyPage() {
         <dl className="mt-4 grid gap-3 text-sm md:grid-cols-2">
           <div className="flex gap-4">
             <dt className="w-16 text-muted">이름</dt>
-            <dd>{session.user.name}</dd>
+            <dd>{user.name}</dd>
           </div>
           <div className="flex gap-4">
             <dt className="w-16 text-muted">이메일</dt>
-            <dd>{session.user.email}</dd>
+            <dd>{user.email}</dd>
+          </div>
+          <div className="flex gap-4">
+            <dt className="w-16 text-muted">가입일</dt>
+            <dd>{user.createdAt.toLocaleDateString("ko-KR")}</dd>
           </div>
         </dl>
         <p className="mt-4 text-xs text-muted">
           프로그램 로그인 시 위 이메일과 비밀번호를 동일하게 사용합니다.
         </p>
       </div>
+
+      <AccountSettings name={user.name} />
 
       {/* 내 프로그램 */}
       <div className="mt-6 rounded-2xl border border-line bg-surface p-6">

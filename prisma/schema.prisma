@@ -15,6 +15,7 @@ enum Role {
 enum UserStatus {
   ACTIVE
   SUSPENDED
+  WITHDRAWN
 }
 
 enum Category {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { toggleProductActive } from "@/app/admin/actions";
+import { toggleProductActive, deleteProduct } from "@/app/admin/actions";
 import AdminProductForm from "@/components/admin-product-form";
 
 export const metadata = { title: "상품관리" };
@@ -18,6 +18,7 @@ export default async function AdminProductsPage({
   const { edit } = await searchParams;
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "asc" },
+    include: { _count: { select: { orders: true } } },
   });
   const editing = edit ? products.find((p) => p.id === edit) : undefined;
 
@@ -77,6 +78,21 @@ export default async function AdminProductsPage({
                         {product.isActive ? "숨기기" : "노출"}
                       </button>
                     </form>
+                    {product._count.orders === 0 && (
+                      <form
+                        action={async () => {
+                          "use server";
+                          await deleteProduct(product.id);
+                        }}
+                      >
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-red-500/40 px-3 py-1.5 text-xs text-red-400 transition hover:bg-red-500/10"
+                        >
+                          삭제
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </td>
               </tr>
