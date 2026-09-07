@@ -23,6 +23,12 @@ enum Category {
   AI_SERVICE
 }
 
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  CANCELED
+}
+
 enum OrderStatus {
   PENDING
   PAID
@@ -30,9 +36,10 @@ enum OrderStatus {
   CANCELED
 }
 
-model EmailVerification {
+/// 회원가입 휴대폰 문자 인증 — phone은 숫자만(01012345678)
+model PhoneVerification {
   id        String   @id @default(cuid())
-  email     String   @unique
+  phone     String   @unique
   code      String
   attempts  Int      @default(0)
   expiresAt DateTime
@@ -41,13 +48,22 @@ model EmailVerification {
 
 model User {
   id           String     @id @default(cuid())
-  email        String     @unique
+  /// 로그인 아이디 — 영문 소문자 시작, 소문자·숫자·밑줄 4~20자
+  username     String     @unique
+  /// 휴대폰 번호 — 숫자만(01012345678), 문자 인증 완료된 번호
+  phone        String     @unique
+  /// 가입 시 수집하지 않음. 과거 데이터 호환용
+  email        String?    @unique
   passwordHash String
   name         String
   role         Role       @default(USER)
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
+  /// 회원별 월 결제 설정 (관리자 지정) — 일괄 청구서 생성 시 기본값
+  monthlyAmount Int?
+  monthlyTitle  String?
   orders       Order[]
+  invoices     Invoice[]
 }
 
 model Product {
@@ -64,10 +80,28 @@ model Product {
   orders       Order[]
 }
 
+/// 월 청구서 — 관리자가 발행, 회원이 마이페이지에서 결제
+model Invoice {
+  id           String        @id @default(cuid())
+  userId       String
+  billingMonth String
+  title        String
+  amount       Int
+  memo         String?
+  status       InvoiceStatus @default(UNPAID)
+  paidAt       DateTime?
+  createdAt    DateTime      @default(now())
+  user         User          @relation(fields: [userId], references: [id])
+  orders       Order[]
+
+  @@unique([userId, billingMonth])
+}
+
 model Order {
   id         String      @id @default(cuid())
   userId     String
-  productId  String
+  productId  String?
+  invoiceId  String?
   orderId    String      @unique
   amount     Int
   status     OrderStatus @default(PENDING)
@@ -77,5 +111,6 @@ model Order {
   paidAt     DateTime?
   createdAt  DateTime    @default(now())
   user       User        @relation(fields: [userId], references: [id])
-  product    Product     @relation(fields: [productId], references: [id])
+  product    Product?    @relation(fields: [productId], references: [id])
+  invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
 }
