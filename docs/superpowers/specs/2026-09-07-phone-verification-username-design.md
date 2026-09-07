@@ -25,7 +25,7 @@
 ## 휴대폰 번호 규칙
 
 - 하이픈·공백을 제거한 숫자만 저장한다. `010`으로 시작하는 11자리만 허용. 정규식 `^010\d{8}$`
-- 정규화 함수 `normalizePhone(input): string | null` 을 `lib/sms.ts`에 둔다.
+- 정규화 함수 `normalizePhone(input): string | null` 과 표시용 `formatPhone(phone): string`(`01012345678` → `010-1234-5678`)을 `lib/phone.ts`에 둔다. 순수 함수만 두어 클라이언트 컴포넌트와 validators가 `node:crypto`를 쓰는 `lib/sms.ts`를 끌어오지 않게 한다.
 
 ## 데이터 모델 (prisma/schema.prisma)
 
@@ -52,13 +52,12 @@ model User {
 
 - `EmailVerification` 모델은 삭제한다.
 - 탈퇴 익명화(`app/mypage/actions.ts`): `username = "withdrawn-<id>"`, `phone = "withdrawn-<id>"`, `email = null`, `name = "탈퇴회원"`, `passwordHash = ""`. 로그인·중복확인 정규식이 `withdrawn-` 접두어를 통과시키지 않으므로 충돌하지 않는다.
-- 시드(`prisma/seed.ts`): 관리자 `admin` / `admin1234!` / phone `01000000001`, 테스트 회원 `user` / `test1234!` / phone `01000000002`. upsert 키는 `username`.
+- 시드(`prisma/seed.ts`, 운영 컨테이너용 `prisma/seed.js`): 관리자 `admin` / `admin1234!`(`SEED_ADMIN_PASSWORD`가 있으면 그 값) / phone `01000000001`, 테스트 회원 `user` / `test1234!` / phone `01000000002`(seed.ts만). upsert 키는 `username`.
 
 ## SMS 발송 모듈 (`lib/sms.ts`, `lib/mailer.ts` 삭제)
 
 ito_lineage_macro_web의 `api/app/services/sms_sender.py`를 TypeScript로 포팅한다. 외부 패키지를 추가하지 않는다.
 
-- `normalizePhone(input)`: 위 규칙. 실패 시 `null`.
 - `buildSolapiAuthHeader(apiKey, apiSecret, now = new Date(), salt = randomHex(16))`: `HMAC-SHA256 apiKey=..., date=<ISO8601>, salt=..., signature=<hmac_sha256(secret, date + salt) hex>`. 테스트를 위해 date/salt 주입 가능.
 - `getSmsConfig()`: `SOLAPI_API_KEY`, `SOLAPI_API_SECRET`, `SOLAPI_SENDER` 셋이 모두 있으면 설정 객체, 아니면 `null`.
 - `sendSms(to, text)`: `POST https://api.solapi.com/messages/v4/send`, body `{ message: { to, from, text } }`, 5초 타임아웃(AbortController). 2xx가 아니면 `SmsSendError(status, body)`를 던진다.
@@ -138,7 +137,12 @@ ito_lineage_macro_web의 `api/app/services/sms_sender.py`를 TypeScript로 포�
 
 ### 마이페이지 (`app/mypage/page.tsx`)
 
-내 정보에 아이디·휴대폰 표시, 이메일 행 삭제. 안내 문구 `프로그램 로그인 시 위 아이디와 비밀번호를 동일하게 사용합니다.` 휴대폰은 `010-1234-5678` 형식으로 표시하는 `formatPhone` 헬퍼를 `lib/sms.ts`에 둔다.
+내 정보에 아이디·휴대폰 표시, 이메일 행 삭제. 안내 문구 `프로그램 로그인 시 위 아이디와 비밀번호를 동일하게 사용합니다.` 휴대폰은 `lib/phone.ts`의 `formatPhone`으로 `010-1234-5678` 형식으로 표시한다.
+
+### 약관·개인정보처리방침
+
+- `app/terms/page.tsx` 제4조: "회원가입은 이메일과 비밀번호를 등록하는 방식" → "회원가입은 아이디, 휴대폰 번호(문자 인증), 비밀번호를 등록하는 방식".
+- `app/privacy/page.tsx` 1항 필수항목: "이메일 주소, 비밀번호(암호화 저장), 이름" → "아이디, 휴대폰 번호, 비밀번호(암호화 저장), 이름".
 
 ### 어드민
 
@@ -160,13 +164,14 @@ ito_lineage_macro_web의 `api/app/services/sms_sender.py`를 TypeScript로 포�
 
 ## 테스트
 
-`package.json`의 `test` 스크립트를 `tsx --test lib/*.test.ts`로 바꾼다.
+`package.json`의 `test` 스크립트에 새 테스트 파일을 명시적으로 추가한다(Windows cmd에서 glob이 확장되지 않으므로 파일 나열).
 
-- `lib/sms.test.ts`
+- `lib/phone.test.ts`
   - `normalizePhone`: `010-1234-5678` → `01012345678`, 공백 포함, 10자리·`011` 시작·문자 포함은 `null`.
+  - `formatPhone`: `01012345678` → `010-1234-5678`.
+- `lib/sms.test.ts`
   - `buildSolapiAuthHeader`: 고정 date/salt로 서명이 `hmac_sha256(secret, date+salt)` hex와 일치, 헤더 형식 검증.
   - `sendVerificationSms`: 환경변수 미설정 시 fetch 호출 없이 반환. 설정 시 fetch URL·body(`to`/`from`/`text`)·Authorization 헤더 검증. 4xx/5xx 응답이면 `SmsSendError`.
-  - `formatPhone`: `01012345678` → `010-1234-5678`.
 - `lib/validators.test.ts`
   - `usernameSchema`: `abcd`·`user_01` 통과, `Abc1` → `abc1`로 변환, `1abc`·`abc`·21자·한글·예약어 거부.
   - `registerSchema`: phone 하이픈 입력이 정규화되어 통과.
