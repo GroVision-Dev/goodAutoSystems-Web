@@ -10,11 +10,11 @@ function getSecret() {
 
 export interface ProgramTokenPayload {
   sub: string; // user id
-  email: string;
+  username: string;
 }
 
 export async function signProgramToken(payload: ProgramTokenPayload) {
-  const token = await new SignJWT({ email: payload.email })
+  const token = await new SignJWT({ username: payload.username })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
     .setIssuedAt()
@@ -28,8 +28,8 @@ export async function verifyProgramToken(
 ): Promise<ProgramTokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecret());
-    if (!payload.sub || typeof payload.email !== "string") return null;
-    return { sub: payload.sub, email: payload.email };
+    if (!payload.sub || typeof payload.username !== "string") return null;
+    return { sub: payload.sub, username: payload.username };
   } catch {
     return null;
   }

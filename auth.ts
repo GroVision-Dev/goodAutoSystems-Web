@@ -8,7 +8,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      email: string;
+      username: string;
       name: string;
       role: "USER" | "ADMIN";
     };
@@ -20,33 +20,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: { signIn: "/login" },
   providers: [
     Credentials({
-      credentials: { email: {}, password: {} },
+      credentials: { username: {}, password: {} },
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
+          where: { username: parsed.data.username },
         });
         if (!user || user.status !== "ACTIVE") return null;
 
         const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!valid) return null;
 
-        return { id: user.id, email: user.email, name: user.name, role: user.role };
+        return { id: user.id, username: user.username, name: user.name, role: user.role };
       },
     }),
   ],
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as { role: "USER" | "ADMIN" }).role;
+        const u = user as { id?: string; username: string; role: "USER" | "ADMIN" };
+        token.id = u.id;
+        token.username = u.username;
+        token.role = u.role;
       }
       return token;
     },
     session({ session, token }) {
       session.user.id = token.id as string;
+      session.user.username = token.username as string;
       session.user.role = token.role as "USER" | "ADMIN";
       return session;
     },

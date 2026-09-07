@@ -17,5 +17,5 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "정지된 계정입니다." }, { status: 403 });
   }
 
-  return NextResponse.json({ id: user.id, email: user.email, name: user.name });
+  return NextResponse.json({ id: user.id, username: user.username, name: user.name });
 }
