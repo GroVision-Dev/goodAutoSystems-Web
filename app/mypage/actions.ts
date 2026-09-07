@@ -104,7 +104,9 @@ export async function withdrawAccount(
     where: { id: user.id },
     data: {
       status: "WITHDRAWN",
-      email: `withdrawn-${user.id}@removed.invalid`,
+      username: `withdrawn-${user.id}`,
+      phone: `withdrawn-${user.id}`,
+      email: null,
       name: "탈퇴회원",
       passwordHash: "",
     },
