@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { invoiceOrderName } from "@/lib/billing";
 
 export const metadata = { title: "관리자 대시보드" };
 
@@ -17,7 +18,7 @@ export default async function AdminDashboardPage() {
       prisma.product.count(),
       prisma.order.findMany({ where: { status: "PAID" } }),
       prisma.order.findMany({
-        include: { user: true, product: true },
+        include: { user: true, product: true, invoice: true },
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
@@ -76,7 +77,13 @@ export default async function AdminDashboardPage() {
                     className="flex items-center justify-between gap-4 py-3 text-sm"
                   >
                     <div className="min-w-0">
-                      <p className="truncate font-medium">{order.product.name}</p>
+                      <p className="truncate font-medium">
+                        {order.product
+                          ? order.product.name
+                          : order.invoice
+                            ? `[월결제] ${invoiceOrderName(order.invoice.title, order.invoice.billingMonth)}`
+                            : "—"}
+                      </p>
                       <p className="mt-0.5 truncate text-xs text-muted">
                         {order.user.name} ·{" "}
                         {order.createdAt.toLocaleString("ko-KR")}
@@ -116,7 +123,7 @@ export default async function AdminDashboardPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate font-medium">{user.name}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted">{user.email}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted">{user.username}</p>
                   </div>
                   <span className="shrink-0 text-xs text-muted">
                     {user.createdAt.toLocaleDateString("ko-KR")}

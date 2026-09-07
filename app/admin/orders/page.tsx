@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import AdminOrderCancel from "@/components/admin-order-cancel";
+import { invoiceOrderName } from "@/lib/billing";
 
 export const metadata = { title: "주문내역" };
 
@@ -26,14 +27,15 @@ export default async function AdminOrdersPage({
         ? {
             OR: [
               { orderId: { contains: q } },
-              { user: { email: { contains: q } } },
+              { user: { username: { contains: q } } },
               { user: { name: { contains: q } } },
               { product: { name: { contains: q } } },
+              { invoice: { title: { contains: q } } },
             ],
           }
         : {}),
     },
-    include: { user: true, product: true },
+    include: { user: true, product: true, invoice: true },
     orderBy: { createdAt: "desc" },
     take: 200,
   });
@@ -110,10 +112,23 @@ export default async function AdminOrdersPage({
                     <td className="p-4">
                       {order.user.name}
                       <span className="block text-xs text-muted">
-                        {order.user.email}
+                        {order.user.username}
                       </span>
                     </td>
-                    <td className="p-4">{order.product.name}</td>
+                    <td className="p-4">
+                      {order.product ? (
+                        order.product.name
+                      ) : order.invoice ? (
+                        <>
+                          <span className="mr-2 rounded-full bg-accent-2/15 px-2 py-0.5 text-[10px] text-accent-2">
+                            월결제
+                          </span>
+                          {invoiceOrderName(order.invoice.title, order.invoice.billingMonth)}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="p-4">{order.amount.toLocaleString()}원</td>
                     <td className="p-4">
                       <span

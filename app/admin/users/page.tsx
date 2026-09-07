@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { toggleUserStatus, toggleUserRole } from "@/app/admin/actions";
+import { MonthlyFeeForm } from "@/components/admin-billing-forms";
+import { formatPhone } from "@/lib/phone";
 
 export const metadata = { title: "회원관리" };
 
@@ -22,7 +24,11 @@ export default async function AdminUsersPage({
     where: {
       ...(q
         ? {
-            OR: [{ email: { contains: q } }, { name: { contains: q } }],
+            OR: [
+              { username: { contains: q } },
+              { name: { contains: q } },
+              { phone: { contains: q.replace(/\D/g, "") || q } },
+            ],
           }
         : {}),
       ...(status && status in STATUS_BADGE
@@ -52,7 +58,7 @@ export default async function AdminUsersPage({
           <input
             name="q"
             defaultValue={q ?? ""}
-            placeholder="이름/이메일 검색"
+            placeholder="이름/아이디/휴대폰 검색"
             className="w-48 rounded-lg border border-line bg-surface-2 px-3 py-2 text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
           />
           <button
@@ -69,9 +75,11 @@ export default async function AdminUsersPage({
           <thead>
             <tr className="border-b border-line text-muted">
               <th className="p-4 font-normal">이름</th>
-              <th className="p-4 font-normal">이메일</th>
+              <th className="p-4 font-normal">아이디</th>
+              <th className="p-4 font-normal">휴대폰</th>
               <th className="p-4 font-normal">권한</th>
               <th className="p-4 font-normal">구매</th>
+              <th className="p-4 font-normal">월결제 설정</th>
               <th className="p-4 font-normal">상태</th>
               <th className="p-4 font-normal">가입일</th>
               <th className="p-4 font-normal">관리</th>
@@ -80,7 +88,7 @@ export default async function AdminUsersPage({
           <tbody>
             {users.length === 0 ? (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-muted">
+                <td colSpan={9} className="p-8 text-center text-muted">
                   조건에 맞는 회원이 없습니다.
                 </td>
               </tr>
@@ -92,7 +100,8 @@ export default async function AdminUsersPage({
                 return (
                   <tr key={user.id} className="border-b border-line/50">
                     <td className="p-4">{user.name}</td>
-                    <td className="p-4 text-muted">{user.email}</td>
+                    <td className="p-4 font-mono text-xs">{user.username}</td>
+                    <td className="p-4 text-muted">{formatPhone(user.phone)}</td>
                     <td className="p-4">
                       {user.role === "ADMIN" ? (
                         <span className="rounded-full bg-accent-2/15 px-2.5 py-1 text-xs text-accent-2">
@@ -103,6 +112,17 @@ export default async function AdminUsersPage({
                       )}
                     </td>
                     <td className="p-4">{user._count.orders}건</td>
+                    <td className="p-4">
+                      {isWithdrawn ? (
+                        <span className="text-muted">—</span>
+                      ) : (
+                        <MonthlyFeeForm
+                          userId={user.id}
+                          amount={user.monthlyAmount}
+                          title={user.monthlyTitle}
+                        />
+                      )}
+                    </td>
                     <td className="p-4">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs ${badge.className}`}

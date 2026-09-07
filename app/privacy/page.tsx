@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "개인정보처리방침" };
 const SECTIONS = [
   {
     title: "1. 수집하는 개인정보 항목",
-    body: "회사는 회원가입 및 서비스 제공을 위해 다음의 개인정보를 수집합니다. 필수항목: 이메일 주소, 비밀번호(암호화 저장), 이름. 결제 시: 결제 정보는 토스페이먼츠(PG사)가 처리하며 회사는 카드번호 등 민감한 결제 정보를 저장하지 않습니다.",
+    body: "회사는 회원가입 및 서비스 제공을 위해 다음의 개인정보를 수집합니다. 필수항목: 아이디, 휴대폰 번호, 비밀번호(암호화 저장), 이름. 결제 시: 결제 정보는 토스페이먼츠(PG사)가 처리하며 회사는 카드번호 등 민감한 결제 정보를 저장하지 않습니다.",
   },
   {
     title: "2. 개인정보의 수집 및 이용 목적",
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-3xl px-4 py-16">
       <h1 className="text-3xl font-bold">개인정보처리방침</h1>
       <p className="mt-4 text-sm leading-relaxed text-muted">
-        굿오토시스템즈(이하 &ldquo;회사&rdquo;)는 개인정보보호법 등 관련 법령을
+        Optix(이하 &ldquo;회사&rdquo;)는 개인정보보호법 등 관련 법령을
         준수하며, 이용자의 개인정보를 소중히 보호합니다.
       </p>
       <div className="mt-10 flex flex-col gap-8">
