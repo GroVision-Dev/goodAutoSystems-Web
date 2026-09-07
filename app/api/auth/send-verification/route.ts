@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/mailer";
+import { sendVerificationSms, isSmsDevMode } from "@/lib/sms";
+import { phoneSchema } from "@/lib/validators";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import {
+  RESEND_INTERVAL_MS,
+  RESEND_INTERVAL_SECONDS,
+  VERIFICATION_TTL_MS,
+  VERIFICATION_TTL_MINUTES,
+} from "@/lib/verification";
 
-const schema = z.object({
-  email: z.string().email("올바른 이메일 형식이 아닙니다."),
-});
+const schema = z.object({ phone: phoneSchema });
 
-const CODE_TTL_MS = 10 * 60 * 1000; // 10분
-const RESEND_INTERVAL_MS = 60 * 1000; // 재발송 최소 간격 60초
+/** 문자는 건당 과금이므로 IP당 1시간 10건으로 제한한다 */
+const SMS_IP_LIMIT = 10;
+const SMS_IP_WINDOW_MS = 60 * 60 * 1000;
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -19,56 +26,68 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  const phone = parsed.data.phone;
 
-  const email = parsed.data.email.toLowerCase();
+  const ipLimit = checkRateLimit(
+    `sms:${getClientIp(request)}`,
+    SMS_IP_LIMIT,
+    SMS_IP_WINDOW_MS
+  );
+  if (!ipLimit.ok) {
+    return NextResponse.json(
+      { error: "인증번호 발송 한도를 초과했습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(ipLimit.retryAfterSeconds) } }
+    );
+  }
 
-  const exists = await prisma.user.findUnique({ where: { email } });
+  const exists = await prisma.user.findUnique({ where: { phone }, select: { id: true } });
   if (exists) {
     return NextResponse.json(
-      { error: "이미 가입된 이메일입니다." },
+      { error: "이미 가입된 휴대폰 번호입니다." },
       { status: 409 }
     );
   }
 
-  const existing = await prisma.emailVerification.findUnique({
-    where: { email },
-  });
-  if (
-    existing &&
-    Date.now() - existing.createdAt.getTime() < RESEND_INTERVAL_MS
-  ) {
+  const existing = await prisma.phoneVerification.findUnique({ where: { phone } });
+  if (existing && Date.now() - existing.createdAt.getTime() < RESEND_INTERVAL_MS) {
     return NextResponse.json(
-      { error: "잠시 후 다시 요청해 주세요. (재발송은 1분 간격)" },
+      { error: `잠시 후 다시 요청해 주세요. (재발송은 ${RESEND_INTERVAL_SECONDS}초 간격)` },
       { status: 429 }
     );
   }
 
   const code = String(Math.floor(100000 + Math.random() * 900000));
 
-  await prisma.emailVerification.upsert({
-    where: { email },
+  await prisma.phoneVerification.upsert({
+    where: { phone },
     update: {
       code,
       attempts: 0,
-      expiresAt: new Date(Date.now() + CODE_TTL_MS),
+      expiresAt: new Date(Date.now() + VERIFICATION_TTL_MS),
       createdAt: new Date(),
     },
     create: {
-      email,
+      phone,
       code,
-      expiresAt: new Date(Date.now() + CODE_TTL_MS),
+      expiresAt: new Date(Date.now() + VERIFICATION_TTL_MS),
     },
   });
 
   try {
-    await sendVerificationEmail(email, code);
+    await sendVerificationSms(phone, code);
   } catch (e) {
-    console.error("[send-verification] 메일 발송 실패:", e);
+    console.error("[send-verification] 문자 발송 실패:", e);
     return NextResponse.json(
-      { error: "인증 메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요." },
+      { error: "인증번호 발송에 실패했습니다. 잠시 후 다시 시도해 주세요." },
       { status: 502 }
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    ttlMinutes: VERIFICATION_TTL_MINUTES,
+    resendSeconds: RESEND_INTERVAL_SECONDS,
+    // SOLAPI 미설정 시 클라이언트에 알려 개발 모드 안내를 띄운다
+    devMode: isSmsDevMode(),
+  });
 }
