@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@prisma/client";
+import { PRICE_NOTE } from "@/lib/site-config";
 
 const CATEGORY_LABEL: Record<string, string> = {
   PROGRAM: "프로그램",
@@ -50,6 +51,10 @@ export default function ProductCard({ product }: { product: Product }) {
         <p className="mt-6 text-xl font-bold">
           {product.price.toLocaleString()}
           <span className="ml-1 text-sm font-normal text-muted">원</span>
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {PRICE_NOTE}
+          {product.category === "PROGRAM" ? " · 영구 사용권" : " · 1회 결제"}
         </p>
       </div>
     </Link>

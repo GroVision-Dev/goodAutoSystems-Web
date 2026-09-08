@@ -145,7 +145,7 @@ export default async function HomePage() {
             &nbsp;합니다
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-            굿오토시스템즈는 데스크톱 자동화 프로그램과 기업 맞춤형 AI 자동화
+            Optix는 데스크톱 자동화 프로그램과 기업 맞춤형 AI 자동화
             구축으로 매일 반복되는 업무를 시스템에 맡기도록 돕습니다.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">

@@ -7,6 +7,7 @@ import {
   AI_SERVICE_COMPARISON,
 } from "@/lib/product-content";
 import ProductCard from "@/components/product-card";
+import { SITE_INFO, PROGRAM_VERSION, PRICE_NOTE } from "@/lib/site-config";
 
 const CATEGORY_LABEL: Record<string, string> = {
   PROGRAM: "프로그램",
@@ -80,6 +81,11 @@ export default async function ProductDetailPage({
             >
               <p className="text-2xl font-bold text-accent">{metric.value}</p>
               <p className="mt-1 text-xs text-muted">{metric.label}</p>
+              {metric.basis && (
+                <p className="mt-1 text-[10px] leading-snug text-muted/70">
+                  * {metric.basis}
+                </p>
+              )}
             </div>
           ))}
         </div>
@@ -161,6 +167,16 @@ export default async function ProductDetailPage({
               <div className="mt-6 overflow-hidden rounded-2xl border border-line">
                 <table className="w-full text-left text-sm">
                   <tbody>
+                    {product.category === "PROGRAM" && (
+                      <tr className="bg-surface">
+                        <th className="w-36 px-5 py-3.5 align-top font-medium text-muted md:w-44">
+                          현재 버전
+                        </th>
+                        <td className="px-5 py-3.5">
+                          v{PROGRAM_VERSION.version} ({PROGRAM_VERSION.releasedAt} 배포)
+                        </td>
+                      </tr>
+                    )}
                     {content.specs.map((row, index) => (
                       <tr
                         key={row.label}
@@ -234,6 +250,21 @@ export default async function ProductDetailPage({
             </section>
           )}
 
+          {/* 구매 전 유의사항 */}
+          {content && (
+            <section className="mt-12">
+              <h2 className="text-2xl font-bold">구매 전 확인해 주세요</h2>
+              <ul className="mt-6 flex flex-col gap-3 rounded-2xl border border-accent-2/30 bg-accent-2/5 p-6">
+                {content.caveats.map((caveat) => (
+                  <li key={caveat} className="flex gap-3 text-sm leading-relaxed text-muted">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-2" />
+                    {caveat}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {/* 상품별 FAQ */}
           {content && (
             <section className="mt-12">
@@ -258,6 +289,48 @@ export default async function ProductDetailPage({
               </div>
             </section>
           )}
+
+          {/* 상품정보 제공고시 (전자상거래법) */}
+          {content && (
+            <section className="mt-12">
+              <h2 className="text-xl font-bold">상품정보 제공고시</h2>
+              <p className="mt-2 text-xs text-muted">
+                전자상거래 등에서의 소비자보호에 관한 법률에 따른 상품 정보입니다.
+              </p>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-line">
+                <table className="w-full text-left text-xs">
+                  <tbody>
+                    {content.notice.map((row, index) => (
+                      <tr
+                        key={row.label}
+                        className={index % 2 === 0 ? "bg-surface" : "bg-surface-2/50"}
+                      >
+                        <th className="w-36 px-4 py-3 align-top font-medium text-muted md:w-44">
+                          {row.label}
+                        </th>
+                        <td className="px-4 py-3 leading-relaxed">{row.value}</td>
+                      </tr>
+                    ))}
+                    <tr
+                      className={
+                        content.notice.length % 2 === 0 ? "bg-surface" : "bg-surface-2/50"
+                      }
+                    >
+                      <th className="w-36 px-4 py-3 align-top font-medium text-muted md:w-44">
+                        판매자 정보
+                      </th>
+                      <td className="px-4 py-3 leading-relaxed">
+                        {SITE_INFO.companyName} · 대표 {SITE_INFO.ceo} · 사업자등록번호{" "}
+                        {SITE_INFO.businessNumber}
+                        {SITE_INFO.mailOrderNumber &&
+                          ` · 통신판매업신고 ${SITE_INFO.mailOrderNumber}`}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
         </div>
 
         {/* 구매 사이드바 (스크롤 고정) */}
@@ -267,6 +340,12 @@ export default async function ProductDetailPage({
             <p className="mt-1 text-3xl font-bold">
               {product.price.toLocaleString()}
               <span className="ml-1 text-base font-normal text-muted">원</span>
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {PRICE_NOTE}
+              {product.category === "PROGRAM"
+                ? " · 1회 결제 · 영구 사용권"
+                : " · 1회 결제 · 세금계산서 발행 가능"}
             </p>
             {alreadyPurchased ? (
               <Link

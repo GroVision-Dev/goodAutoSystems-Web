@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
 
@@ -14,11 +15,15 @@ export default async function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white">
-            G
-          </span>
-          <span>굿오토시스템즈</span>
+        <Link href="/" className="flex items-center" aria-label="Optix 홈">
+          <Image
+            src="/images/logo-white.png"
+            alt="Optix"
+            width={141}
+            height={40}
+            priority
+            className="h-10 w-auto"
+          />
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm text-muted md:flex">

@@ -53,7 +53,7 @@ export default function ServicesPage() {
       <p className="font-medium text-accent-2">SERVICES</p>
       <h1 className="mt-2 text-3xl font-bold">AI 업무 자동화 서비스</h1>
       <p className="mt-3 max-w-2xl text-muted">
-        굿오토시스템즈는 진단부터 구축, 운영까지 업무 자동화의 전 과정을
+        Optix는 진단부터 구축, 운영까지 업무 자동화의 전 과정을
         함께합니다.
       </p>
 

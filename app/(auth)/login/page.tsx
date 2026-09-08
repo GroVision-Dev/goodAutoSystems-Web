@@ -10,7 +10,7 @@ export default function LoginPage() {
       <div className="rounded-2xl border border-line bg-surface p-8">
         <h1 className="mb-2 text-2xl font-bold">로그인</h1>
         <p className="mb-8 text-sm text-muted">
-          굿오토시스템즈 계정으로 로그인하세요. 프로그램 로그인에도 동일한 계정을 사용합니다.
+          Optix 계정으로 로그인하세요. 프로그램 로그인에도 동일한 계정을 사용합니다.
         </p>
         <Suspense>
           <LoginForm />

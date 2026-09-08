@@ -6,11 +6,11 @@ import FloatingContact from "@/components/floating-contact";
 
 export const metadata: Metadata = {
   title: {
-    default: "굿오토시스템즈 | Good Auto Systems",
-    template: "%s | 굿오토시스템즈",
+    default: "Optix",
+    template: "%s | Optix",
   },
   description:
-    "업무 자동화 프로그램과 AI 자동화 솔루션을 제공하는 굿오토시스템즈입니다.",
+    "업무 자동화 프로그램과 AI 자동화 솔루션을 제공하는 Optix입니다.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

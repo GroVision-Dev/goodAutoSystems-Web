@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_INFO } from "@/lib/site-config";
 
 export const metadata: Metadata = { title: "회사소개" };
 
@@ -30,7 +31,7 @@ export default function AboutPage() {
           사람은 더 가치 있는 일에 집중하게 한다&rdquo;
         </h2>
         <p className="mt-6 max-w-3xl leading-relaxed text-muted">
-          굿오토시스템즈(Good Auto Systems)는 업무 자동화 전문 기업입니다.
+          Optix는 업무 자동화 전문 기업입니다.
           데스크톱 자동화 프로그램과 AI 기반 업무 자동화 솔루션을 통해
           기업과 개인이 반복 업무에서 벗어나 본질적인 일에 집중할 수 있도록
           돕습니다.
@@ -53,19 +54,38 @@ export default function AboutPage() {
         <dl className="mt-6 grid gap-4 text-sm md:grid-cols-2">
           <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-muted">회사명</dt>
-            <dd>굿오토시스템즈 (Good Auto Systems)</dd>
+            <dd>Optix</dd>
           </div>
           <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-muted">사업 분야</dt>
             <dd>업무 자동화 프로그램 개발, AI 자동화 솔루션</dd>
           </div>
           <div className="flex gap-4">
+            <dt className="w-24 shrink-0 text-muted">대표</dt>
+            <dd>{SITE_INFO.ceo}</dd>
+          </div>
+          <div className="flex gap-4">
+            <dt className="w-24 shrink-0 text-muted">사업자번호</dt>
+            <dd>
+              {SITE_INFO.businessNumber}
+              {SITE_INFO.mailOrderNumber &&
+                ` · 통신판매업신고 ${SITE_INFO.mailOrderNumber}`}
+            </dd>
+          </div>
+          <div className="flex gap-4 md:col-span-2">
+            <dt className="w-24 shrink-0 text-muted">소재지</dt>
+            <dd>{SITE_INFO.address}</dd>
+          </div>
+          <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-muted">이메일</dt>
-            <dd>contact@goodautosystems.com</dd>
+            <dd>{SITE_INFO.email}</dd>
           </div>
           <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-muted">고객지원</dt>
-            <dd>평일 09:00 - 18:00</dd>
+            <dd>
+              {SITE_INFO.supportHours}
+              {SITE_INFO.phone && ` · ${SITE_INFO.phone}`}
+            </dd>
           </div>
         </dl>
       </div>

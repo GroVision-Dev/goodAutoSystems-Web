@@ -1,4 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
+import { SITE_INFO } from "@/lib/site-config";
 
 export default function SiteFooter() {
   return (
@@ -6,12 +8,13 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex flex-col justify-between gap-10 md:flex-row">
           <div className="max-w-sm">
-            <p className="flex items-center gap-2 text-lg font-bold">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-sm text-white">
-                G
-              </span>
-              굿오토시스템즈
-            </p>
+            <Image
+              src="/images/logo-white.png"
+              alt="Optix"
+              width={112}
+              height={32}
+              className="h-8 w-auto"
+            />
             <p className="mt-3 text-sm leading-relaxed text-muted">
               업무 자동화 프로그램과 AI 자동화 솔루션으로
               <br />
@@ -54,19 +57,31 @@ export default function SiteFooter() {
 
         <div className="mt-10 border-t border-line pt-6 text-xs leading-relaxed text-muted">
           <p>
-            상호 : 굿오토시스템즈 · 대표 : 강석인 · 사업자등록번호 :
-            250-12-03264
+            상호 : {SITE_INFO.companyName} · 대표 : {SITE_INFO.ceo} ·
+            사업자등록번호 : {SITE_INFO.businessNumber}
+            {SITE_INFO.mailOrderNumber && (
+              <> · 통신판매업신고 : {SITE_INFO.mailOrderNumber}</>
+            )}
+          </p>
+          <p className="mt-1">주소 : {SITE_INFO.address}</p>
+          <p className="mt-1">
+            이메일 : {SITE_INFO.email}
+            {SITE_INFO.phone && <> · 전화 : {SITE_INFO.phone}</>} · 고객지원 :{" "}
+            {SITE_INFO.supportHours}
           </p>
           <p className="mt-1">
-            주소 : 전북특별자치도 전주시 완산구 세내로 303, 102동 602호
-            (효자동3가, 서부신시가지 코아루해피트리)
+            개인정보보호책임자 : {SITE_INFO.privacyOfficer} · 호스팅 :{" "}
+            {SITE_INFO.hostingProvider}
           </p>
           <p className="mt-1">
-            이메일 : contact@goodautosystems.com · 고객지원 : 평일 09:00 -
-            18:00
+            상품 가격은 부가세(VAT) 포함 금액이며, 청약철회·환불 규정은{" "}
+            <Link href="/terms" className="underline hover:text-foreground">
+              이용약관
+            </Link>
+            을 따릅니다.
           </p>
           <p className="mt-4">
-            © {new Date().getFullYear()} Good Auto Systems. All rights
+            © {new Date().getFullYear()} Optix. All rights
             reserved.
           </p>
         </div>
