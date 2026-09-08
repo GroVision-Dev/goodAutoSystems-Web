@@ -7,6 +7,7 @@ const MENU = [
   { href: "/admin/users", label: "회원관리" },
   { href: "/admin/products", label: "상품관리" },
   { href: "/admin/orders", label: "주문내역" },
+  { href: "/admin/billing", label: "월결제 관리" },
 ];
 
 export default async function AdminLayout({
