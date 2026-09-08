@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 12000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 12000",
     "lint": "eslint",
     "test": "tsx --test lib/portone.test.ts lib/phone.test.ts lib/validators.test.ts lib/sms.test.ts lib/rate-limit.test.ts",
     "sms:test": "node --env-file=.env scripts/send-test-sms.mjs"

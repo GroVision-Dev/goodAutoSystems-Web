@@ -17,10 +17,10 @@
 
 ```bash
 npm install
-docker compose up -d db   # 개발용 PostgreSQL 기동 (호스트 5434 포트)
+docker compose up -d db   # 개발용 PostgreSQL 기동 (호스트 12002 포트)
 npx prisma db push        # DB 스키마 생성
 npx prisma db seed        # 시드 데이터 (계정/상품)
-npm run dev               # http://localhost:3000
+npm run dev               # http://localhost:12000
 ```
 
 ## 운영서버 Docker 배포
@@ -37,7 +37,8 @@ docker compose up --build -d
 - 최초 기동 시 관리자 계정(아이디 `admin`, 비밀번호는 `SEED_ADMIN_PASSWORD`)과 기본 상품이 자동 생성됩니다
 - `private-files/`는 호스트 바인드 마운트라 설치 파일을 서버에서 교체하면 재빌드 없이 반영됩니다
 - 재배포: `git pull && docker compose up --build -d`
-- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 3000)로 프록시하세요. `AUTH_URL`을 실제 도메인으로 설정해야 결제 리다이렉트와 로그인이 정상 동작합니다.
+- 포트: 웹 `WEB_PORT`(기본 12000), DB `DB_PORT`(기본 12002). 컨테이너 내부는 3000/5432 그대로입니다.
+- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 12000)로 프록시하세요. `AUTH_URL`을 실제 도메인으로 설정해야 결제 리다이렉트와 로그인이 정상 동작합니다.
 
 ### 시드 계정
 
@@ -50,7 +51,8 @@ docker compose up --build -d
 
 | 변수 | 설명 |
 |------|------|
-| `DATABASE_URL` | SQLite 경로 (`file:./dev.db`) |
+| `DATABASE_URL` | PostgreSQL 접속 문자열 (로컬: `postgresql://goodauto:<비밀번호>@localhost:12002/goodauto`) |
+| `WEB_PORT` / `DB_PORT` | docker compose 호스트 포트 (기본 12000 / 12002) |
 | `AUTH_SECRET` | Auth.js 세션 서명 키 (운영 전 교체) |
 | `PROGRAM_JWT_SECRET` | 프로그램 API JWT 서명 키 (운영 전 교체) |
 | `NEXT_PUBLIC_PORTONE_STORE_ID` | 포트원 상점 아이디 (관리자 콘솔 > 연동 정보) |
