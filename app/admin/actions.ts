@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { cancelPayment, TossConfirmError } from "@/lib/toss";
+import { cancelPayment, PortOneApiError } from "@/lib/portone";
 
 async function requireAdmin() {
   const session = await auth();
@@ -49,7 +49,7 @@ export interface CancelOrderState {
   ok?: boolean;
 }
 
-/** 결제 취소(환불): 토스 취소 API 호출 후 주문을 CANCELED로 전환 */
+/** 결제 취소(환불): 포트원 취소 API 호출 후 주문을 CANCELED로 전환 */
 export async function cancelOrder(
   _prev: CancelOrderState,
   formData: FormData
@@ -65,20 +65,33 @@ export async function cancelOrder(
 
   if (order.paymentKey) {
     try {
-      await cancelPayment(order.paymentKey, reason);
+      // 포트원 취소는 paymentId(=주문번호) 기준으로 호출한다
+      await cancelPayment(order.orderId, reason);
     } catch (e) {
       const message =
-        e instanceof TossConfirmError ? e.message : "결제 취소 중 오류가 발생했습니다.";
-      return { error: `토스 결제취소 실패: ${message}` };
+        e instanceof PortOneApiError ? e.message : "결제 취소 중 오류가 발생했습니다.";
+      return { error: `포트원 결제취소 실패: ${message}` };
     }
   }
-  // paymentKey가 없는 주문(테스트 데이터)은 토스 호출 없이 상태만 변경한다.
+  // paymentKey가 없는 주문(테스트 데이터)은 포트원 호출 없이 상태만 변경한다.
 
-  await prisma.order.update({
-    where: { orderId },
-    data: { status: "CANCELED", failReason: reason },
-  });
+  await prisma.$transaction([
+    prisma.order.update({
+      where: { orderId },
+      data: { status: "CANCELED", failReason: reason },
+    }),
+    // 청구서 결제를 환불하면 청구서는 다시 미납 상태로 되돌린다.
+    ...(order.invoiceId
+      ? [
+          prisma.invoice.update({
+            where: { id: order.invoiceId },
+            data: { status: "UNPAID", paidAt: null },
+          }),
+        ]
+      : []),
+  ]);
   revalidatePath("/admin/orders");
+  revalidatePath("/admin/billing");
   revalidatePath("/mypage");
   return { ok: true };
 }
