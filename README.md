@@ -38,7 +38,7 @@ docker compose up --build -d
 - `private-files/`는 호스트 바인드 마운트라 설치 파일을 서버에서 교체하면 재빌드 없이 반영됩니다
 - 재배포: `git pull && docker compose up --build -d`
 - 포트: 웹 `WEB_PORT`(기본 12000), DB `DB_PORT`(기본 12002). 컨테이너 내부는 3000/5432 그대로입니다.
-- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 12000)로 프록시하세요. `AUTH_URL`을 실제 도메인으로 설정해야 결제 리다이렉트와 로그인이 정상 동작합니다.
+- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 12000)로 프록시하세요. nginx 예시: `deploy/nginx/optix.goodautosystems.kr.conf` `AUTH_URL`을 실제 도메인으로 설정해야 결제 리다이렉트와 로그인이 정상 동작합니다.
 
 ### 시드 계정
 
