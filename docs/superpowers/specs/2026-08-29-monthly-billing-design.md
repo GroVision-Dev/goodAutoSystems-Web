@@ -5,9 +5,16 @@
 청구서는 **관리자 수동 발행**만 지원한다(자동 생성·크론 없음).
 
 ## 데이터 모델
-- `User.monthlyAmount Int?`, `User.monthlyTitle String?` — 회원별 월 결제 설정. 일괄 발행 시 기본값으로 사용.
-- `Invoice` — 청구서. `userId`, `billingMonth("YYYY-MM")`, `title`, `amount`, `memo?`, `status(UNPAID|PAID|CANCELED)`, `paidAt?`.
+- `User.monthlyAmount Int?`, `User.monthlyTitle String?`, `User.billingDay Int?(1~31)` — 회원별 월 결제 설정. 일괄 발행 시 기본값으로 사용.
+- `Invoice` — 청구서. `userId`, `billingMonth("YYYY-MM")`, `title`, `amount`, `memo?`, `status(UNPAID|PAID|CANCELED)`, `dueDate?`, `notifiedAt?`, `paidAt?`.
   `@@unique([userId, billingMonth])` — 회원당 한 달에 한 장.
+  `dueDate`는 청구 월 + 회원 결제일로 계산(그 달에 없는 날짜는 말일). `notifiedAt`은 안내 문자 마지막 발송 시각.
+
+## 결제일·문자 안내 (2026-09-10 추가)
+- 회원마다 결제일이 달라서 관리자가 회원관리에서 결제일(매월 N일)을 등록한다.
+- 월결제 관리 상단에 "이번 달 결제 예정 회원"을 결제일순으로 보여주고(D-day, 미발행/미납/납부 상태), 행에서 바로 "발행 + 문자" / "발행만" 할 수 있다.
+- 청구서 발행(개별·일괄·예정 목록)에 문자 발송 옵션이 있다. SOLAPI로 회원 휴대폰에 청구 월·항목·금액·결제일·마이페이지 링크를 보낸다. SOLAPI 미설정(로컬)이면 콘솔 출력만 하고 `notifiedAt`은 기록하지 않는다.
+- 미납 청구서는 "문자 재발송"이 가능하고, 결제일이 지난 미납은 관리자·마이페이지 양쪽에 연체로 표시한다.
 - `Order.productId`를 선택으로 변경, `Order.invoiceId?` 추가. 상품 주문과 청구서 결제가 같은 결제 승인·취소·금액 검증 흐름을 공유한다.
 
 ## 관리자

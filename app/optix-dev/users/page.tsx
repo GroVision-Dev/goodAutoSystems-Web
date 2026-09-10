@@ -87,7 +87,7 @@ export default async function AdminUsersPage({
       </div>
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table className="w-full min-w-[1040px] text-left text-sm">
+        <table className="w-full min-w-[1160px] text-left text-sm">
           <thead>
             <tr className="border-b border-line text-xs text-muted">
               <th className="whitespace-nowrap px-4 py-3 font-normal">회원</th>
@@ -148,6 +148,7 @@ export default async function AdminUsersPage({
                           userId={user.id}
                           amount={user.monthlyAmount}
                           title={user.monthlyTitle}
+                          billingDay={user.billingDay}
                         />
                       )}
                     </td>

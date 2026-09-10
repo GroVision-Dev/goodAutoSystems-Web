@@ -62,6 +62,8 @@ model User {
   /// 회원별 월 결제 설정 (관리자 지정) — 일괄 청구서 생성 시 기본값
   monthlyAmount Int?
   monthlyTitle  String?
+  /// 회원별 결제일 (매월 N일, 1~31). 해당 월에 그 날짜가 없으면 말일로 본다
+  billingDay    Int?
   orders       Order[]
   invoices     Invoice[]
 }
@@ -89,6 +91,10 @@ model Invoice {
   amount       Int
   memo         String?
   status       InvoiceStatus @default(UNPAID)
+  /// 결제 예정일 (회원 결제일 기준). 지나면 연체로 표시
+  dueDate      DateTime?
+  /// 청구서 안내 문자 마지막 발송 시각
+  notifiedAt   DateTime?
   paidAt       DateTime?
   createdAt    DateTime      @default(now())
   user         User          @relation(fields: [userId], references: [id])

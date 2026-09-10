@@ -87,6 +87,20 @@ export function verificationSmsText(code: string) {
   return `[Optix] 회원가입 인증번호 ${code} (${VERIFICATION_TTL_MINUTES}분 유효)`;
 }
 
+/**
+ * 청구서 안내 문자. SOLAPI 미설정(로컬)이면 콘솔에 출력하고 false를 반환한다.
+ * 반환값이 true일 때만 실제로 발송된 것이다.
+ */
+export async function sendInvoiceSms(phone: string, text: string): Promise<boolean> {
+  const config = getSmsConfig();
+  if (!config) {
+    console.log(`[sms] SOLAPI 미설정 — 개발 모드. ${phone} 청구서 안내: ${text}`);
+    return false;
+  }
+  await sendSms(phone, text, config);
+  return true;
+}
+
 export async function sendVerificationSms(phone: string, code: string) {
   const config = getSmsConfig();
   if (!config) {

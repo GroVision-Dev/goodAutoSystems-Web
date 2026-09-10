@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { formatBillingMonth } from "@/lib/billing";
+import { formatBillingMonth, formatDueDate } from "@/lib/billing";
 import { PRICE_NOTE } from "@/lib/site-config";
 import PortOneCheckout from "@/components/portone-checkout";
 
@@ -50,6 +50,9 @@ export default async function InvoiceCheckoutPage({
             </p>
             <p className="mt-1 font-bold">{invoice.title}</p>
             {invoice.memo && <p className="mt-1 text-sm text-muted">{invoice.memo}</p>}
+            {invoice.dueDate && (
+              <p className="mt-1 text-xs text-muted">결제일: {formatDueDate(invoice.dueDate)}</p>
+            )}
           </div>
           <div className="text-right">
             <p className="text-xl font-bold">

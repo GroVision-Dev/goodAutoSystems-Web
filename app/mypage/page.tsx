@@ -8,7 +8,9 @@ import { formatPhone } from "@/lib/phone";
 import {
   INVOICE_STATUS,
   formatBillingMonth,
+  formatDueDate,
   invoiceOrderName,
+  isOverdue,
 } from "@/lib/billing";
 
 export const metadata: Metadata = { title: "마이페이지" };
@@ -48,11 +50,11 @@ export default async function MyPage() {
   const unpaidTotal = unpaidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
+    <div className="mx-auto max-w-4xl px-4 py-10 md:py-16">
       <h1 className="text-2xl font-bold">마이페이지</h1>
 
       {/* 내 정보 */}
-      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
+      <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:mt-8 md:p-6">
         <h2 className="font-bold">내 정보</h2>
         <dl className="mt-4 grid gap-3 text-sm md:grid-cols-2">
           <div className="flex gap-4">
@@ -68,8 +70,8 @@ export default async function MyPage() {
             <dd>{formatPhone(user.phone)}</dd>
           </div>
           <div className="flex gap-4">
-            <dt className="w-16 text-muted">이메일</dt>
-            <dd>
+            <dt className="w-16 shrink-0 text-muted">이메일</dt>
+            <dd className="min-w-0 break-all">
               {user.email ?? <span className="text-accent-2">미등록 · 아래에서 등록해 주세요</span>}
             </dd>
           </div>
@@ -87,12 +89,13 @@ export default async function MyPage() {
 
       {/* 월 결제 */}
       {(invoices.length > 0 || user.monthlyAmount) && (
-        <div className="mt-6 rounded-2xl border border-line bg-surface p-6">
+        <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-bold">월 결제</h2>
             {user.monthlyAmount ? (
               <p className="text-xs text-muted">
-                설정 금액: 월 {user.monthlyAmount.toLocaleString()}원 ({user.monthlyTitle})
+                월 {user.monthlyAmount.toLocaleString()}원 ({user.monthlyTitle})
+                {user.billingDay ? ` · 매월 ${user.billingDay}일 결제` : ""}
               </p>
             ) : null}
           </div>
@@ -110,10 +113,13 @@ export default async function MyPage() {
             <ul className="mt-4 flex flex-col gap-3">
               {invoices.map((inv) => {
                 const badge = INVOICE_STATUS[inv.status];
+                const overdue = isOverdue(inv);
                 return (
                   <li
                     key={inv.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface-2 px-4 py-3"
+                    className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-surface-2 px-4 py-3 ${
+                      overdue ? "border-red-500/40" : "border-line"
+                    }`}
                   >
                     <div>
                       <p className="text-xs font-medium text-accent-2">
@@ -122,12 +128,19 @@ export default async function MyPage() {
                       <p className="mt-0.5 font-medium">{inv.title}</p>
                       {inv.memo && <p className="mt-0.5 text-xs text-muted">{inv.memo}</p>}
                       <p className="mt-1 text-xs text-muted">
-                        {inv.status === "PAID" && inv.paidAt
-                          ? `납부일: ${inv.paidAt.toLocaleDateString("ko-KR")}`
-                          : `발행일: ${inv.createdAt.toLocaleDateString("ko-KR")}`}
+                        {inv.status === "PAID" && inv.paidAt ? (
+                          `납부일: ${inv.paidAt.toLocaleDateString("ko-KR")}`
+                        ) : inv.dueDate ? (
+                          <>
+                            결제일: {formatDueDate(inv.dueDate)}
+                            {overdue && <span className="ml-1.5 text-red-400">결제일이 지났습니다</span>}
+                          </>
+                        ) : (
+                          `발행일: ${inv.createdAt.toLocaleDateString("ko-KR")}`
+                        )}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start">
                       <p className="font-bold">{inv.amount.toLocaleString()}원</p>
                       <span className={`rounded-full px-2.5 py-1 text-xs ${badge.className}`}>
                         {badge.label}
@@ -150,7 +163,7 @@ export default async function MyPage() {
       )}
 
       {/* 내 프로그램 */}
-      <div className="mt-6 rounded-2xl border border-line bg-surface p-6">
+      <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:p-6">
         <h2 className="font-bold">내 프로그램</h2>
         {purchasedPrograms.length === 0 ? (
           <p className="mt-4 text-sm text-muted">
@@ -164,9 +177,9 @@ export default async function MyPage() {
             {purchasedPrograms.map((order) => (
               <li
                 key={order.id}
-                className="flex items-center justify-between rounded-lg border border-line bg-surface-2 px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line bg-surface-2 px-4 py-3"
               >
-                <div>
+                <div className="min-w-0">
                   <p className="font-medium">{order.product?.name}</p>
                   <p className="mt-1 text-xs text-muted">
                     구매일: {order.paidAt?.toLocaleDateString("ko-KR")}
@@ -174,7 +187,7 @@ export default async function MyPage() {
                 </div>
                 <a
                   href={`/api/download/${order.productId}`}
-                  className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent/80"
+                  className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent/80"
                 >
                   다운로드
                 </a>
@@ -185,13 +198,13 @@ export default async function MyPage() {
       </div>
 
       {/* 주문 내역 */}
-      <div className="mt-6 rounded-2xl border border-line bg-surface p-6">
+      <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:p-6">
         <h2 className="font-bold">주문 내역</h2>
         {orders.length === 0 ? (
           <p className="mt-4 text-sm text-muted">주문 내역이 없습니다.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="-mx-5 mt-4 overflow-x-auto px-5 md:mx-0 md:px-0">
+            <table className="w-full min-w-[480px] text-left text-sm">
               <thead>
                 <tr className="border-b border-line text-muted">
                   <th className="pb-3 pr-4 font-normal">상품</th>
@@ -212,17 +225,17 @@ export default async function MyPage() {
                             ? `[월결제] ${invoiceOrderName(order.invoice.title, order.invoice.billingMonth)}`
                             : "—"}
                       </td>
-                      <td className="py-3 pr-4">
+                      <td className="whitespace-nowrap py-3 pr-4">
                         {order.amount.toLocaleString()}원
                       </td>
                       <td className="py-3 pr-4">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs ${status.className}`}
+                          className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs ${status.className}`}
                         >
                           {status.label}
                         </span>
                       </td>
-                      <td className="py-3 text-muted">
+                      <td className="whitespace-nowrap py-3 text-muted">
                         {order.createdAt.toLocaleDateString("ko-KR")}
                       </td>
                     </tr>
