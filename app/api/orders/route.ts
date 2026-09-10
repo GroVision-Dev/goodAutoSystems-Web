@@ -107,5 +107,6 @@ export async function POST(request: Request) {
     orderName: product.name,
     customerName: session.user.name,
     customerPhone: customer.phone,
+    customerEmail: customer.email ?? "",
   });
 }
