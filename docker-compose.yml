@@ -54,7 +54,8 @@ services:
       DATABASE_URL: postgresql://goodauto:${POSTGRES_PASSWORD}@db:5432/goodauto
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET을 .env에 설정하세요}
       AUTH_TRUST_HOST: "true"
-      AUTH_URL: ${AUTH_URL:-http://localhost:12000}
+      # 로그아웃·인증 리다이렉트 기준 주소. 미설정 시 localhost로 리다이렉트되므로 필수
+      AUTH_URL: "${AUTH_URL:?AUTH_URL을 .env에 서비스 도메인(예 https://optix.goodautosys.kr)으로 설정하세요}"
       PROGRAM_JWT_SECRET: ${PROGRAM_JWT_SECRET:?PROGRAM_JWT_SECRET을 .env에 설정하세요}
       NEXT_PUBLIC_PORTONE_STORE_ID: ${NEXT_PUBLIC_PORTONE_STORE_ID}
       NEXT_PUBLIC_PORTONE_CHANNEL_KEY: ${NEXT_PUBLIC_PORTONE_CHANNEL_KEY}

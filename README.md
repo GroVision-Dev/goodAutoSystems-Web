@@ -39,7 +39,8 @@ docker compose up --build -d
 - 재배포: `git pull && docker compose up --build -d`
 - `NEXT_PUBLIC_PORTONE_*` 값은 빌드 시 클라이언트 번들에 포함됩니다. `.env`에서 이 값을 바꾸면 `docker compose up --build -d`로 반드시 재빌드하세요 (`restart`만으로는 반영되지 않음)
 - 포트: 웹 `WEB_PORT`(기본 12000), DB `DB_PORT`(기본 12002). 컨테이너 내부는 3000/5432 그대로입니다.
-- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 12000)로 프록시하세요. nginx 예시: `deploy/nginx/optix.goodautosys.kr.conf` `AUTH_URL`을 실제 도메인으로 설정해야 결제 리다이렉트와 로그인이 정상 동작합니다.
+- HTTPS는 서버의 nginx/Caddy 등 리버스 프록시에서 `WEB_PORT`(기본 12000)로 프록시하세요. nginx 예시: `deploy/nginx/optix.goodautosys.kr.conf`
+- `AUTH_URL`은 필수이며 실제 서비스 도메인(`https://optix.goodautosys.kr`)으로 설정해야 합니다. 비어 있거나 localhost면 로그아웃·결제 리다이렉트가 localhost로 이동합니다.
 
 ### 시드 계정
 
