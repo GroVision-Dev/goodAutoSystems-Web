@@ -13,8 +13,7 @@ export const SITE_INFO = {
   address:
     "전북특별자치도 전주시 완산구 밤나부2길 4, 1층(효자동 1가)",
   email: "contact@goodautosystems.com",
-  /** 고객센터 전화번호 — 확보 후 기재 (예: "063-000-0000") */
-  phone: "",
+  phone: "010-2532-2314",
   supportHours: "평일 09:00 - 18:00 (주말·공휴일 휴무)",
   privacyOfficer: "강석인 (대표)",
   hostingProvider: "자체 서버 운영",

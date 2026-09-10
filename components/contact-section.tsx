@@ -26,7 +26,7 @@ export default function ContactSection() {
             </a>
           </div>
           <p className="mt-8 text-sm text-muted">
-            contact@goodautosystems.com · 평일 09:00 - 18:00
+            010-2532-2314 · contact@goodautosystems.com · 평일 09:00 - 18:00
           </p>
         </div>
       </div>

@@ -169,7 +169,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
       { label: "상품 제공 방식", value: "다운로드 (결제 즉시 마이페이지에서 제공)" },
       { label: "최소 시스템 사양", value: "Windows 10/11 64bit · 메모리 4GB · 디스크 500MB · 인터넷 연결" },
       { label: "청약철회 · 환불", value: "다운로드 또는 프로그램 로그인 이전, 결제일로부터 7일 이내 전액 환불. 이후에는 청약철회 제한" },
-      { label: "소비자 상담", value: "contact@goodautosystems.com · 평일 09:00 - 18:00" },
+      { label: "소비자 상담", value: "010-2532-2314 · contact@goodautosystems.com · 평일 09:00 - 18:00" },
     ],
     caveats: [
       "설치 파일을 다운로드하거나 프로그램에 로그인한 이후에는 청약철회가 제한됩니다.",
@@ -279,7 +279,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
       { label: "서비스 기간", value: "구축 2~4주 + 운영 지원 1개월 (결제 후 영업일 1일 내 일정 협의)" },
       { label: "제공 방식", value: "원격 진행 기본 (방문 시 별도 협의)" },
       { label: "청약철회 · 환불", value: "업무 진단 착수 전 전액 환불. 착수 후에는 진행 단계에 따라 잔여 금액 환불" },
-      { label: "소비자 상담", value: "contact@goodautosystems.com · 평일 09:00 - 18:00" },
+      { label: "소비자 상담", value: "010-2532-2314 · contact@goodautosystems.com · 평일 09:00 - 18:00" },
     ],
     caveats: [
       "결제 후 영업일 1일 내 담당자가 연락드려 일정을 협의하며, 진단 착수 이후에는 진행 단계에 따라 환불 금액이 달라집니다.",
@@ -406,7 +406,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
       { label: "서비스 기간", value: "구축 6~8주 + 운영 지원 3개월 (결제 후 영업일 1일 내 일정 협의)" },
       { label: "제공 방식", value: "원격 + 방문 병행 (출장비 별도 협의)" },
       { label: "청약철회 · 환불", value: "업무 진단 착수 전 전액 환불. 착수 후에는 진행 단계에 따라 잔여 금액 환불" },
-      { label: "소비자 상담", value: "contact@goodautosystems.com · 평일 09:00 - 18:00" },
+      { label: "소비자 상담", value: "010-2532-2314 · contact@goodautosystems.com · 평일 09:00 - 18:00" },
     ],
     caveats: [
       "결제 후 영업일 1일 내 담당자가 연락드려 일정을 협의하며, 진단 착수 이후에는 진행 단계에 따라 환불 금액이 달라집니다.",
