@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { toggleUserStatus, toggleUserRole } from "@/app/admin/actions";
+import { toggleUserStatus, toggleUserRole } from "@/app/optix-dev/actions";
 import { MonthlyFeeForm } from "@/components/admin-billing-forms";
 import { formatPhone } from "@/lib/phone";
 

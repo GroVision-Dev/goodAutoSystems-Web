@@ -60,7 +60,7 @@ export default async function AdminBillingPage({
     <div>
       <h1 className="text-2xl font-bold">월결제 관리</h1>
       <p className="mt-2 text-sm text-muted">
-        회원별 월 결제 금액은 <a href="/admin/users" className="text-accent hover:underline">회원관리</a>에서 설정합니다.
+        회원별 월 결제 금액은 <a href="/optix-dev/users" className="text-accent hover:underline">회원관리</a>에서 설정합니다.
         현재 월 결제 설정 회원 {monthlyUsers.toLocaleString()}명.
       </p>
 
@@ -194,7 +194,7 @@ export default async function AdminBillingPage({
                       )}
                       {inv.status === "PAID" && (
                         <a
-                          href={`/admin/orders?q=${encodeURIComponent(inv.user.username)}`}
+                          href={`/optix-dev/orders?q=${encodeURIComponent(inv.user.username)}`}
                           className="text-xs text-muted hover:text-foreground"
                         >
                           주문 보기

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { toggleProductActive, deleteProduct } from "@/app/admin/actions";
+import { toggleProductActive, deleteProduct } from "@/app/optix-dev/actions";
 import AdminProductForm from "@/components/admin-product-form";
 
 export const metadata = { title: "상품관리" };
@@ -60,7 +60,7 @@ export default async function AdminProductsPage({
                 <td className="p-4">
                   <div className="flex gap-2">
                     <Link
-                      href={`/admin/products?edit=${product.id}`}
+                      href={`/optix-dev/products?edit=${product.id}`}
                       className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition hover:text-foreground"
                     >
                       수정
@@ -105,7 +105,7 @@ export default async function AdminProductsPage({
         <div className="flex items-center justify-between">
           <h2 className="font-bold">{editing ? `상품 수정 — ${editing.name}` : "새 상품 등록"}</h2>
           {editing && (
-            <Link href="/admin/products" className="text-sm text-muted hover:text-foreground">
+            <Link href="/optix-dev/products" className="text-sm text-muted hover:text-foreground">
               등록 모드로
             </Link>
           )}

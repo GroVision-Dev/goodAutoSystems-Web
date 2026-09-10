@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveProduct, type ProductFormState } from "@/app/admin/actions";
+import { saveProduct, type ProductFormState } from "@/app/optix-dev/actions";
 import type { Product } from "@prisma/client";
 
 const inputClass =

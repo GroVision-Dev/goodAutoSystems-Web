@@ -26,7 +26,7 @@ export async function toggleUserStatus(userId: string) {
     where: { id: userId },
     data: { status: user.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE" },
   });
-  revalidatePath("/admin/users");
+  revalidatePath("/optix-dev/users");
 }
 
 export async function toggleUserRole(userId: string) {
@@ -41,7 +41,7 @@ export async function toggleUserRole(userId: string) {
     where: { id: userId },
     data: { role: user.role === "ADMIN" ? "USER" : "ADMIN" },
   });
-  revalidatePath("/admin/users");
+  revalidatePath("/optix-dev/users");
 }
 
 export interface CancelOrderState {
@@ -90,8 +90,8 @@ export async function cancelOrder(
         ]
       : []),
   ]);
-  revalidatePath("/admin/orders");
-  revalidatePath("/admin/billing");
+  revalidatePath("/optix-dev/orders");
+  revalidatePath("/optix-dev/billing");
   revalidatePath("/mypage");
   return { ok: true };
 }
@@ -105,7 +105,7 @@ export async function deleteProduct(productId: string) {
   }
 
   await prisma.product.delete({ where: { id: productId } });
-  revalidatePath("/admin/products");
+  revalidatePath("/optix-dev/products");
   revalidatePath("/products");
   revalidatePath("/");
 }
@@ -166,7 +166,7 @@ export async function saveProduct(
     await prisma.product.create({ data });
   }
 
-  revalidatePath("/admin/products");
+  revalidatePath("/optix-dev/products");
   revalidatePath("/products");
   revalidatePath("/");
   return { ok: true };
@@ -181,7 +181,7 @@ export async function toggleProductActive(productId: string) {
     where: { id: productId },
     data: { isActive: !product.isActive },
   });
-  revalidatePath("/admin/products");
+  revalidatePath("/optix-dev/products");
   revalidatePath("/products");
   revalidatePath("/");
 }

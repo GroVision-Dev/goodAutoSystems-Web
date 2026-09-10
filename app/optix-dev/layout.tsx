@@ -1,13 +1,19 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 
+/** 관리자 경로는 검색엔진에 노출하지 않는다 */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
+
 const MENU = [
-  { href: "/admin", label: "대시보드" },
-  { href: "/admin/users", label: "회원관리" },
-  { href: "/admin/products", label: "상품관리" },
-  { href: "/admin/orders", label: "주문내역" },
-  { href: "/admin/billing", label: "월결제 관리" },
+  { href: "/optix-dev", label: "대시보드" },
+  { href: "/optix-dev/users", label: "회원관리" },
+  { href: "/optix-dev/products", label: "상품관리" },
+  { href: "/optix-dev/orders", label: "주문내역" },
+  { href: "/optix-dev/billing", label: "월결제 관리" },
 ];
 
 export default async function AdminLayout({
@@ -16,7 +22,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  if (!session) redirect("/login?callbackUrl=/admin");
+  if (!session) redirect("/login?callbackUrl=/optix-dev");
   if (session.user.role !== "ADMIN") redirect("/");
 
   return (

@@ -37,7 +37,7 @@ export default async function SiteHeader() {
             </Link>
           ))}
           {session?.user.role === "ADMIN" && (
-            <Link href="/admin" className="text-accent-2 transition hover:text-foreground">
+            <Link href="/optix-dev" className="text-accent-2 transition hover:text-foreground">
               관리자
             </Link>
           )}

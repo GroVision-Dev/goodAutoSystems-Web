@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { cancelOrder, type CancelOrderState } from "@/app/admin/actions";
+import { cancelOrder, type CancelOrderState } from "@/app/optix-dev/actions";
 
 export default function AdminOrderCancel({ orderId }: { orderId: string }) {
   const [open, setOpen] = useState(false);

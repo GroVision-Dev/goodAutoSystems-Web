@@ -61,7 +61,7 @@ export default async function AdminDashboardPage() {
         <div className="rounded-2xl border border-line bg-surface p-6">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">최근 주문</h2>
-            <Link href="/admin/orders" className="text-xs text-accent hover:underline">
+            <Link href="/optix-dev/orders" className="text-xs text-accent hover:underline">
               전체 보기 →
             </Link>
           </div>
@@ -108,7 +108,7 @@ export default async function AdminDashboardPage() {
         <div className="rounded-2xl border border-line bg-surface p-6">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">최근 가입 회원</h2>
-            <Link href="/admin/users" className="text-xs text-accent hover:underline">
+            <Link href="/optix-dev/users" className="text-xs text-accent hover:underline">
               전체 보기 →
             </Link>
           </div>
@@ -137,7 +137,7 @@ export default async function AdminDashboardPage() {
 
       <p className="mt-6 text-xs text-muted">
         등록 상품 {productCount}개 ·{" "}
-        <Link href="/admin/products" className="text-accent hover:underline">
+        <Link href="/optix-dev/products" className="text-accent hover:underline">
           상품관리로 이동
         </Link>
       </p>

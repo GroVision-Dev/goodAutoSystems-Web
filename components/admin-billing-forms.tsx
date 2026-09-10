@@ -6,7 +6,7 @@ import {
   generateMonthlyInvoices,
   setMonthlyFee,
   type BillingActionState,
-} from "@/app/admin/billing/actions";
+} from "@/app/optix-dev/billing/actions";
 
 const inputClass =
   "rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none";

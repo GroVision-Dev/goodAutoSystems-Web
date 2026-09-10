@@ -21,9 +21,9 @@ export interface BillingActionState {
 }
 
 function revalidateBilling() {
-  revalidatePath("/admin/billing");
-  revalidatePath("/admin/users");
-  revalidatePath("/admin");
+  revalidatePath("/optix-dev/billing");
+  revalidatePath("/optix-dev/users");
+  revalidatePath("/optix-dev");
   revalidatePath("/mypage");
 }
 
