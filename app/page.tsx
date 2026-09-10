@@ -112,7 +112,7 @@ const FAQS = [
   },
   {
     q: "결제는 어떻게 하나요? 세금계산서 발행이 가능한가요?",
-    a: "카드·계좌이체 등 토스페이먼츠를 통해 안전하게 결제됩니다. 사업자 회원은 결제 후 세금계산서 발행을 요청하실 수 있습니다.",
+    a: "카드·계좌이체 등 토스페이먼츠를 통해 안전하게 결제됩니다. 당사는 간이과세자로 세금계산서 발행이 불가하며, 카드 매출전표 또는 현금영수증(지출증빙용)으로 증빙하실 수 있습니다.",
   },
   {
     q: "도입 후 문제가 생기면 지원을 받을 수 있나요?",
@@ -129,14 +129,14 @@ export default async function HomePage() {
   return (
     <>
       {/* 히어로 — 회사/제품 소개 영상 (현재 더미 영상) */}
-      <section className="relative flex min-h-[88vh] items-center">
+      <section className="relative flex min-h-[70vh] items-center md:min-h-[88vh]">
         <HeroVideo />
-        <div className="relative mx-auto w-full max-w-6xl px-4 py-24">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-sm text-muted backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent-2" />
+        <div className="relative mx-auto w-full max-w-6xl px-4 py-16 md:py-24">
+          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-surface/60 px-4 py-1.5 text-xs text-muted backdrop-blur sm:text-sm">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent-2" />
             업무 자동화 프로그램 · AI 자동화 구축 전문
           </p>
-          <h1 className="max-w-3xl text-4xl font-bold leading-[1.2] md:text-6xl">
+          <h1 className="max-w-3xl text-3xl font-bold leading-[1.2] sm:text-4xl md:text-6xl">
             사람은 판단에 집중하고,
             <br />
             <span className="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">
@@ -144,25 +144,25 @@ export default async function HomePage() {
             </span>
             &nbsp;합니다
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted md:mt-6 md:text-lg">
             Optix는 데스크톱 자동화 프로그램과 기업 맞춤형 AI 자동화
             구축으로 매일 반복되는 업무를 시스템에 맡기도록 돕습니다.
           </p>
-          <div className="mt-10 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4 md:mt-10">
             <Link
               href="/products"
-              className="rounded-lg bg-accent px-7 py-3.5 font-medium text-white transition hover:bg-accent/80"
+              className="rounded-lg bg-accent px-7 py-3.5 text-center font-medium text-white transition hover:bg-accent/80"
             >
               상품 보러가기
             </Link>
             <a
               href="#contact"
-              className="rounded-lg border border-line bg-surface/60 px-7 py-3.5 font-medium backdrop-blur transition hover:border-accent/60"
+              className="rounded-lg border border-line bg-surface/60 px-7 py-3.5 text-center font-medium backdrop-blur transition hover:border-accent/60"
             >
               도입 문의하기
             </a>
           </div>
-          <div className="mt-14 flex flex-wrap gap-x-10 gap-y-3 text-sm text-muted">
+          <div className="mt-10 flex flex-wrap gap-x-10 gap-y-2 text-xs text-muted sm:text-sm md:mt-14 md:gap-y-3">
             <span>이커머스 · 제조 · 물류 · 서비스업 현장 적용</span>
             <span className="hidden md:inline text-line">|</span>
             <span>토스페이먼츠 안전 결제</span>
@@ -174,10 +174,10 @@ export default async function HomePage() {
 
       {/* 핵심 지표 */}
       <section className="border-y border-line bg-surface/40">
-        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 py-14 md:grid-cols-4">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-10 sm:gap-8 md:grid-cols-4 md:py-14">
           {METRICS.map((metric) => (
             <div key={metric.label}>
-              <p className="text-3xl font-bold text-foreground md:text-4xl">
+              <p className="text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
                 {metric.value}
               </p>
               <p className="mt-2 text-sm font-medium">{metric.label}</p>
@@ -188,17 +188,17 @@ export default async function HomePage() {
       </section>
 
       {/* 페인포인트 */}
-      <section className="mx-auto max-w-6xl px-4 py-28">
-        <p className="font-medium text-accent-2">WHY AUTOMATION</p>
-        <h2 className="mt-3 text-3xl font-bold leading-snug md:text-4xl">
+      <section className="mx-auto max-w-6xl px-4 py-16 md:py-28">
+        <p className="text-sm font-medium text-accent-2 md:text-base">WHY AUTOMATION</p>
+        <h2 className="mt-3 text-2xl font-bold leading-snug sm:text-3xl md:text-4xl">
           혹시 지금, 이런 하루를
           <br className="md:hidden" /> 보내고 계신가요?
         </h2>
-        <div className="mt-14 grid gap-5 md:grid-cols-2">
+        <div className="mt-10 grid gap-4 md:mt-14 md:grid-cols-2 md:gap-5">
           {PAIN_POINTS.map((item, index) => (
             <div
               key={item.title}
-              className="rounded-2xl border border-line bg-surface p-8 transition hover:border-accent/40"
+              className="rounded-2xl border border-line bg-surface p-6 transition hover:border-accent/40 md:p-8"
             >
               <p className="text-sm font-bold text-accent">
                 {String(index + 1).padStart(2, "0")}
@@ -210,7 +210,7 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
-        <p className="mt-10 text-center text-lg font-medium text-muted">
+        <p className="mt-8 text-center text-base font-medium text-muted md:mt-10 md:text-lg">
           하나라도 해당된다면, 이미 자동화로 돌려받을 수 있는 시간이 있다는
           뜻입니다.
         </p>
@@ -218,21 +218,21 @@ export default async function HomePage() {
 
       {/* 진행 프로세스 */}
       <section className="border-t border-line bg-surface/40">
-        <div className="mx-auto max-w-6xl px-4 py-28">
-          <p className="font-medium text-accent-2">PROCESS</p>
-          <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:py-28">
+          <p className="text-sm font-medium text-accent-2 md:text-base">PROCESS</p>
+          <h2 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">
             진단부터 운영까지, 이렇게 진행됩니다
           </h2>
-          <p className="mt-4 max-w-2xl text-muted">
+          <p className="mt-4 max-w-2xl text-sm text-muted md:text-base">
             담당 개발자가 직접 업무 현장을 파악하고, 실제 데이터로 검증하며
             구축합니다. 만들어 놓고 끝나는 자동화가 아니라 계속 돌아가는
             시스템을 만듭니다.
           </p>
-          <div className="mt-14 grid gap-6 lg:grid-cols-3">
+          <div className="mt-10 grid gap-4 md:mt-14 md:gap-6 lg:grid-cols-3">
             {PROCESS_STEPS.map((step) => (
               <div
                 key={step.step}
-                className="relative rounded-2xl border border-line bg-surface p-8"
+                className="relative rounded-2xl border border-line bg-surface p-6 md:p-8"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl font-bold text-accent/60">
@@ -261,36 +261,42 @@ export default async function HomePage() {
       </section>
 
       {/* 상품 쇼케이스 */}
-      <section className="mx-auto max-w-6xl px-4 py-28">
-        <div className="flex items-end justify-between">
+      <section className="mx-auto max-w-6xl px-4 py-16 md:py-28">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="font-medium text-accent-2">PRODUCTS</p>
-            <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+            <p className="text-sm font-medium text-accent-2 md:text-base">PRODUCTS</p>
+            <h2 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">
               업무에 맞는 자동화를 선택하세요
             </h2>
           </div>
           <Link
             href="/products"
-            className="hidden text-sm text-accent hover:underline md:block"
+            className="hidden shrink-0 text-sm text-accent hover:underline md:block"
           >
             전체 상품 보기 →
           </Link>
         </div>
         <ProductShowcase products={products} />
+        <Link
+          href="/products"
+          className="mt-6 block rounded-lg border border-line py-3 text-center text-sm font-medium text-accent transition hover:border-accent/60 md:hidden"
+        >
+          전체 상품 보기 →
+        </Link>
       </section>
 
       {/* 도입 사례 */}
       <section className="border-t border-line bg-surface/40">
-        <div className="mx-auto max-w-6xl px-4 py-28">
-          <p className="font-medium text-accent-2">USE CASES</p>
-          <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:py-28">
+          <p className="text-sm font-medium text-accent-2 md:text-base">USE CASES</p>
+          <h2 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">
             현장에서 이렇게 쓰이고 있습니다
           </h2>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-4 md:mt-14 md:grid-cols-3 md:gap-6">
             {CASES.map((item) => (
               <div
                 key={item.title}
-                className="flex flex-col rounded-2xl border border-line bg-surface p-8"
+                className="flex flex-col rounded-2xl border border-line bg-surface p-6 md:p-8"
               >
                 <p className="text-xs font-medium text-accent-2">
                   {item.industry}
@@ -309,22 +315,22 @@ export default async function HomePage() {
       </section>
 
       {/* FAQ */}
-      <section className="mx-auto max-w-3xl px-4 py-28">
-        <p className="text-center font-medium text-accent-2">FAQ</p>
-        <h2 className="mt-3 text-center text-3xl font-bold">자주 묻는 질문</h2>
-        <div className="mt-12 flex flex-col gap-3">
+      <section className="mx-auto max-w-3xl px-4 py-16 md:py-28">
+        <p className="text-center text-sm font-medium text-accent-2 md:text-base">FAQ</p>
+        <h2 className="mt-3 text-center text-2xl font-bold sm:text-3xl">자주 묻는 질문</h2>
+        <div className="mt-8 flex flex-col gap-3 md:mt-12">
           {FAQS.map((faq) => (
             <details
               key={faq.q}
               className="group rounded-xl border border-line bg-surface open:border-accent/40"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 font-medium [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-medium [&::-webkit-details-marker]:hidden md:px-6 md:py-5 md:text-base">
                 {faq.q}
-                <span className="text-muted transition group-open:rotate-45">
+                <span className="shrink-0 text-muted transition group-open:rotate-45">
                   +
                 </span>
               </summary>
-              <p className="border-t border-line px-6 py-5 text-sm leading-relaxed text-muted">
+              <p className="border-t border-line px-5 py-4 text-sm leading-relaxed text-muted md:px-6 md:py-5">
                 {faq.a}
               </p>
             </details>

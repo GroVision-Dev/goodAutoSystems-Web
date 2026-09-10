@@ -39,7 +39,7 @@ export default function AccountSettings({
   const [showWithdraw, setShowWithdraw] = useState(false);
 
   return (
-    <div className="mt-6 rounded-2xl border border-line bg-surface p-6">
+    <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:p-6">
       <h2 className="font-bold">계정 설정</h2>
 
       <div className="mt-6 grid gap-8 md:grid-cols-2">

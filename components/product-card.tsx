@@ -32,7 +32,7 @@ export default function ProductCard({ product }: { product: Product }) {
           />
         </div>
       )}
-      <div className="flex flex-1 flex-col p-6">
+      <div className="flex flex-1 flex-col p-5 md:p-6">
         <span
           className={`w-fit rounded-full px-3 py-1 text-xs font-medium ${
             product.category === "PROGRAM"

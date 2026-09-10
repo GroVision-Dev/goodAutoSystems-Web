@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_INFO } from "@/lib/site-config";
+import { SITE_INFO, TAX_NOTICE } from "@/lib/site-config";
 
 export const metadata: Metadata = { title: "회사소개" };
 
@@ -20,17 +20,17 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
-      <p className="font-medium text-accent-2">ABOUT US</p>
-      <h1 className="mt-2 text-3xl font-bold">회사소개</h1>
+    <div className="mx-auto max-w-6xl px-4 py-10 md:py-16">
+      <p className="text-sm font-medium text-accent-2 md:text-base">ABOUT US</p>
+      <h1 className="mt-2 text-2xl font-bold sm:text-3xl">회사소개</h1>
 
-      <div className="mt-12 rounded-2xl border border-line bg-surface p-10">
-        <h2 className="text-2xl font-bold leading-relaxed">
+      <div className="mt-8 rounded-2xl border border-line bg-surface p-6 md:mt-12 md:p-10">
+        <h2 className="break-keep text-xl font-bold leading-relaxed md:text-2xl">
           &ldquo;모든 반복 업무를 자동화하여
-          <br />
+          <br className="hidden sm:block" />{" "}
           사람은 더 가치 있는 일에 집중하게 한다&rdquo;
         </h2>
-        <p className="mt-6 max-w-3xl leading-relaxed text-muted">
+        <p className="mt-5 max-w-3xl text-sm leading-relaxed text-muted md:mt-6 md:text-base">
           Optix는 업무 자동화 전문 기업입니다.
           데스크톱 자동화 프로그램과 AI 기반 업무 자동화 솔루션을 통해
           기업과 개인이 반복 업무에서 벗어나 본질적인 일에 집중할 수 있도록
@@ -38,9 +38,9 @@ export default function AboutPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
+      <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-3 md:gap-6">
         {VALUES.map((value) => (
-          <div key={value.title} className="rounded-2xl border border-line bg-surface p-8">
+          <div key={value.title} className="rounded-2xl border border-line bg-surface p-6 md:p-8">
             <h3 className="text-lg font-bold text-accent">{value.title}</h3>
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {value.description}
@@ -49,16 +49,12 @@ export default function AboutPage() {
         ))}
       </div>
 
-      <div className="mt-8 rounded-2xl border border-line bg-surface p-10">
+      <div className="mt-6 rounded-2xl border border-line bg-surface p-6 md:mt-8 md:p-10">
         <h2 className="text-lg font-bold">회사 정보</h2>
-        <dl className="mt-6 grid gap-4 text-sm md:grid-cols-2">
+        <dl className="mt-6 grid gap-4 break-keep text-sm md:grid-cols-2">
           <div className="flex gap-4">
-            <dt className="w-24 shrink-0 text-muted">회사명</dt>
-            <dd>Optix</dd>
-          </div>
-          <div className="flex gap-4">
-            <dt className="w-24 shrink-0 text-muted">사업 분야</dt>
-            <dd>업무 자동화 프로그램 개발, AI 자동화 솔루션</dd>
+            <dt className="w-24 shrink-0 text-muted">상호</dt>
+            <dd>{SITE_INFO.companyName}</dd>
           </div>
           <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-muted">대표</dt>
@@ -72,8 +68,32 @@ export default function AboutPage() {
                 ` · 통신판매업신고 ${SITE_INFO.mailOrderNumber}`}
             </dd>
           </div>
+          <div className="flex gap-4">
+            <dt className="w-24 shrink-0 text-muted">과세유형</dt>
+            <dd>{SITE_INFO.taxType}</dd>
+          </div>
+          <div className="flex gap-4">
+            <dt className="w-24 shrink-0 text-muted">개업일</dt>
+            <dd>{SITE_INFO.openedAt.replace(/-/g, ".")}</dd>
+          </div>
+          <div className="flex gap-4">
+            <dt className="w-24 shrink-0 text-muted">사업 분야</dt>
+            <dd>업무 자동화 프로그램 개발, AI 자동화 솔루션</dd>
+          </div>
           <div className="flex gap-4 md:col-span-2">
-            <dt className="w-24 shrink-0 text-muted">소재지</dt>
+            <dt className="w-24 shrink-0 text-muted">업태 · 종목</dt>
+            <dd>
+              <ul className="space-y-0.5">
+                {SITE_INFO.businessTypes.map((type) => (
+                  <li key={type.item}>
+                    {type.category} · {type.item}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+          <div className="flex gap-4 md:col-span-2">
+            <dt className="w-24 shrink-0 text-muted">사업장 소재지</dt>
             <dd>{SITE_INFO.address}</dd>
           </div>
           <div className="flex gap-4">
@@ -88,6 +108,7 @@ export default function AboutPage() {
             </dd>
           </div>
         </dl>
+        <p className="mt-6 break-keep text-xs leading-relaxed text-muted">{TAX_NOTICE}</p>
       </div>
     </div>
   );

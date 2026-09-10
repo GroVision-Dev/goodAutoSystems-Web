@@ -8,7 +8,7 @@ import Link from "next/link";
 const inputClass =
   "w-full rounded-lg border border-line bg-surface-2 px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none";
 const sideButtonClass =
-  "shrink-0 rounded-lg border border-accent/60 px-4 py-3 text-sm font-medium text-accent transition hover:bg-accent/10 disabled:opacity-50";
+  "shrink-0 whitespace-nowrap rounded-lg border border-accent/60 px-3 py-3 text-sm font-medium text-accent transition hover:bg-accent/10 disabled:opacity-50 sm:px-4";
 
 export function LoginForm() {
   const router = useRouter();
@@ -257,7 +257,7 @@ export function RegisterForm() {
             value={username}
             onChange={handleUsernameChange}
             placeholder="아이디 (영문 소문자·숫자 4~20자)"
-            className={inputClass}
+            className={`${inputClass} min-w-0`}
           />
           <button
             type="button"
@@ -311,7 +311,7 @@ export function RegisterForm() {
           autoComplete="tel"
           required
           placeholder="휴대폰 번호 (010-0000-0000)"
-          className={inputClass}
+          className={`${inputClass} min-w-0`}
         />
         <button
           type="button"
@@ -325,7 +325,12 @@ export function RegisterForm() {
               ? `재발송 (${cooldown}s)`
               : codeSent
                 ? "재발송"
-                : "인증번호 발송"}
+                : (
+                    <>
+                      <span className="sm:hidden">인증 발송</span>
+                      <span className="hidden sm:inline">인증번호 발송</span>
+                    </>
+                  )}
         </button>
       </div>
       {codeSent && (

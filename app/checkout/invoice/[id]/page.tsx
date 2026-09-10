@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { formatBillingMonth, formatDueDate } from "@/lib/billing";
-import { PRICE_NOTE } from "@/lib/site-config";
+import { PRICE_NOTE, RECEIPT_NOTE } from "@/lib/site-config";
 import PortOneCheckout from "@/components/portone-checkout";
 
 export const metadata: Metadata = { title: "월 결제" };
@@ -77,7 +77,7 @@ export default async function InvoiceCheckoutPage({
           </div>
           <div className="flex gap-3">
             <dt className="w-24 shrink-0">증빙</dt>
-            <dd>카드 매출전표 자동 발급 · 사업자 회원은 세금계산서 발행 요청 가능</dd>
+            <dd>{RECEIPT_NOTE}</dd>
           </div>
         </dl>
         <p className="mt-4 text-xs leading-relaxed text-muted">

@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { SITE_INFO } from "@/lib/site-config";
+import { SITE_INFO, TAX_NOTICE } from "@/lib/site-config";
 
 export default function SiteFooter() {
   return (
     <footer className="border-t border-line bg-surface">
-      <div className="mx-auto max-w-6xl px-4 py-12">
-        <div className="flex flex-col justify-between gap-10 md:flex-row">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
+        <div className="flex flex-col justify-between gap-8 md:flex-row md:gap-10">
           <div className="max-w-sm">
             <Image
               src="/images/logo-white.png"
@@ -21,7 +21,7 @@ export default function SiteFooter() {
               반복 업무 없는 일터를 만듭니다.
             </p>
           </div>
-          <div className="flex gap-16 text-sm">
+          <div className="flex gap-10 text-sm sm:gap-16">
             <div className="flex flex-col gap-2.5">
               <p className="font-medium">서비스</p>
               <Link href="/products" className="text-muted hover:text-foreground">
@@ -55,15 +55,15 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-line pt-6 text-xs leading-relaxed text-muted">
+        <div className="mt-8 break-keep border-t border-line pt-6 text-xs leading-relaxed text-muted md:mt-10">
           <p>
             상호 : {SITE_INFO.companyName} · 대표 : {SITE_INFO.ceo} ·
-            사업자등록번호 : {SITE_INFO.businessNumber}
+            사업자등록번호 : {SITE_INFO.businessNumber} ({SITE_INFO.taxType})
             {SITE_INFO.mailOrderNumber && (
               <> · 통신판매업신고 : {SITE_INFO.mailOrderNumber}</>
             )}
           </p>
-          <p className="mt-1">주소 : {SITE_INFO.address}</p>
+          <p className="mt-1">사업장 소재지 : {SITE_INFO.address}</p>
           <p className="mt-1">
             이메일 : {SITE_INFO.email}
             {SITE_INFO.phone && <> · 전화 : {SITE_INFO.phone}</>} · 고객지원 :{" "}
@@ -80,6 +80,7 @@ export default function SiteFooter() {
             </Link>
             을 따릅니다.
           </p>
+          <p className="mt-1">{TAX_NOTICE}</p>
           <p className="mt-4">
             © {new Date().getFullYear()} Optix. All rights
             reserved.

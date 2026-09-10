@@ -49,17 +49,17 @@ const USE_CASES = [
 
 export default function ServicesPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
-      <p className="font-medium text-accent-2">SERVICES</p>
-      <h1 className="mt-2 text-3xl font-bold">AI 업무 자동화 서비스</h1>
-      <p className="mt-3 max-w-2xl text-muted">
+    <div className="mx-auto max-w-6xl px-4 py-10 md:py-16">
+      <p className="text-sm font-medium text-accent-2 md:text-base">SERVICES</p>
+      <h1 className="mt-2 text-2xl font-bold sm:text-3xl">AI 업무 자동화 서비스</h1>
+      <p className="mt-3 max-w-2xl text-sm text-muted md:text-base">
         Optix는 진단부터 구축, 운영까지 업무 자동화의 전 과정을
         함께합니다.
       </p>
 
-      <div className="mt-12 grid gap-6 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:mt-12 md:grid-cols-3 md:gap-6">
         {STEPS.map((item) => (
-          <div key={item.step} className="rounded-2xl border border-line bg-surface p-8">
+          <div key={item.step} className="rounded-2xl border border-line bg-surface p-6 md:p-8">
             <p className="text-sm font-bold text-accent">{item.step}</p>
             <h3 className="mt-2 text-lg font-bold">{item.title}</h3>
             <p className="mt-3 text-sm leading-relaxed text-muted">
@@ -70,7 +70,7 @@ export default function ServicesPage() {
       </div>
 
       {/* 자동화 파이프라인 */}
-      <figure className="mt-16">
+      <figure className="mt-10 md:mt-16">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/workflow-diagram.svg"
@@ -83,8 +83,8 @@ export default function ServicesPage() {
       </figure>
 
       {/* 실제 화면 */}
-      <h2 className="mt-20 text-2xl font-bold">실제 구축 화면</h2>
-      <p className="mt-3 max-w-2xl text-muted">
+      <h2 className="mt-12 text-xl font-bold md:mt-20 md:text-2xl">실제 구축 화면</h2>
+      <p className="mt-3 max-w-2xl text-sm text-muted md:text-base">
         도입 기업에 제공되는 자동화 워크스페이스 화면입니다. 처리 현황과 성과를
         한눈에 확인할 수 있습니다.
       </p>
@@ -113,10 +113,10 @@ export default function ServicesPage() {
         </figure>
       </div>
 
-      <h2 className="mt-20 text-2xl font-bold">활용 사례</h2>
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+      <h2 className="mt-12 text-xl font-bold md:mt-20 md:text-2xl">활용 사례</h2>
+      <div className="mt-6 grid gap-4 md:mt-8 md:grid-cols-2 md:gap-6">
         {USE_CASES.map((item) => (
-          <div key={item.title} className="rounded-2xl border border-line bg-surface p-8">
+          <div key={item.title} className="rounded-2xl border border-line bg-surface p-6 md:p-8">
             <h3 className="text-lg font-bold">{item.title}</h3>
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {item.description}
@@ -125,9 +125,9 @@ export default function ServicesPage() {
         ))}
       </div>
 
-      <div className="mt-20 rounded-2xl border border-line bg-surface-2 p-10 text-center">
-        <h2 className="text-2xl font-bold">우리 회사에 맞는 자동화가 궁금하다면</h2>
-        <p className="mt-3 text-muted">
+      <div className="mt-12 rounded-2xl border border-line bg-surface-2 p-6 text-center md:mt-20 md:p-10">
+        <h2 className="text-xl font-bold md:text-2xl">우리 회사에 맞는 자동화가 궁금하다면</h2>
+        <p className="mt-3 text-sm text-muted md:text-base">
           AI 자동화 상품을 확인하고 바로 도입해 보세요.
         </p>
         <Link

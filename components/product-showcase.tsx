@@ -32,11 +32,11 @@ const CARD_GRADIENT: Record<string, string> = {
 
 export default function ProductShowcase({ products }: { products: Product[] }) {
   return (
-    <div className="mt-14 flex flex-col gap-6">
+    <div className="mt-10 flex flex-col gap-4 md:mt-14 md:gap-6">
       {products.map((product, index) => (
         <div
           key={product.id}
-          className={`grid gap-8 rounded-2xl border border-line bg-gradient-to-br p-8 md:grid-cols-[1fr_auto] md:items-center md:p-10 ${
+          className={`grid gap-6 rounded-2xl border border-line bg-gradient-to-br p-6 md:grid-cols-[1fr_auto] md:items-center md:gap-8 md:p-10 ${
             CARD_GRADIENT[product.category]
           }`}
         >
@@ -45,10 +45,10 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
               {String(index + 1).padStart(2, "0")}-PRODUCT ·{" "}
               {CATEGORY_LABEL[product.category]}
             </p>
-            <h3 className="mt-3 text-2xl font-bold md:text-3xl">
+            <h3 className="mt-3 text-xl font-bold sm:text-2xl md:text-3xl">
               {product.name}
             </h3>
-            <p className="mt-3 max-w-xl text-muted">{product.summary}</p>
+            <p className="mt-3 max-w-xl text-sm text-muted md:text-base">{product.summary}</p>
             <ul className="mt-6 flex flex-col gap-2">
               {(HIGHLIGHTS[product.slug] ?? []).map((item) => (
                 <li key={item} className="flex items-center gap-2.5 text-sm">
@@ -60,14 +60,14 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
               ))}
             </ul>
           </div>
-          <div className="flex flex-col items-start gap-4 md:items-end">
-            <p className="text-3xl font-bold">
+          <div className="flex flex-row items-center justify-between gap-4 border-t border-line pt-5 md:flex-col md:items-end md:border-0 md:pt-0">
+            <p className="text-2xl font-bold md:text-3xl">
               {product.price.toLocaleString()}
               <span className="ml-1 text-base font-normal text-muted">원</span>
             </p>
             <Link
               href={`/products/${product.slug}`}
-              className="rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent/80"
+              className="shrink-0 rounded-lg bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent/80 md:px-6"
             >
               자세히 보기 →
             </Link>

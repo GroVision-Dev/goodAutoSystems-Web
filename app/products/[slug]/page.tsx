@@ -49,7 +49,7 @@ export default async function ProductDetailPage({
     ["ai-automation-starter", "ai-automation-enterprise"].includes(product.slug);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-16">
+    <div className="mx-auto max-w-6xl px-4 py-10 pb-28 md:py-16 lg:pb-16">
       {/* 헤더 */}
       <p className="text-sm text-muted">
         <Link href="/products" className="hover:text-foreground">
@@ -68,21 +68,21 @@ export default async function ProductDetailPage({
           {CATEGORY_LABEL[product.category]}
         </span>
       </div>
-      <h1 className="mt-3 text-3xl font-bold md:text-4xl">{product.name}</h1>
-      <p className="mt-3 max-w-2xl text-lg text-muted">{product.summary}</p>
+      <h1 className="mt-3 text-2xl font-bold sm:text-3xl md:text-4xl">{product.name}</h1>
+      <p className="mt-3 max-w-2xl text-base text-muted md:text-lg">{product.summary}</p>
 
       {/* 핵심 지표 */}
       {content && (
-        <div className="mt-8 grid gap-4 md:max-w-2xl md:grid-cols-3">
+        <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-4 md:max-w-2xl">
           {content.metrics.map((metric) => (
             <div
               key={metric.label}
-              className="rounded-xl border border-line bg-surface px-5 py-4"
+              className="rounded-xl border border-line bg-surface px-3 py-3 sm:px-5 sm:py-4"
             >
-              <p className="text-2xl font-bold text-accent">{metric.value}</p>
-              <p className="mt-1 text-xs text-muted">{metric.label}</p>
+              <p className="text-lg font-bold text-accent sm:text-2xl">{metric.value}</p>
+              <p className="mt-1 text-[11px] text-muted sm:text-xs">{metric.label}</p>
               {metric.basis && (
-                <p className="mt-1 text-[10px] leading-snug text-muted/70">
+                <p className="mt-1 hidden text-[10px] leading-snug text-muted/70 sm:block">
                   * {metric.basis}
                 </p>
               )}
@@ -169,7 +169,7 @@ export default async function ProductDetailPage({
                   <tbody>
                     {product.category === "PROGRAM" && (
                       <tr className="bg-surface">
-                        <th className="w-36 px-5 py-3.5 align-top font-medium text-muted md:w-44">
+                        <th className="w-28 px-4 py-3.5 align-top font-medium text-muted sm:w-36 sm:px-5 md:w-44">
                           현재 버전
                         </th>
                         <td className="px-5 py-3.5">
@@ -182,10 +182,10 @@ export default async function ProductDetailPage({
                         key={row.label}
                         className={index % 2 === 0 ? "bg-surface" : "bg-surface-2/50"}
                       >
-                        <th className="w-36 px-5 py-3.5 align-top font-medium text-muted md:w-44">
+                        <th className="w-28 px-4 py-3.5 align-top font-medium text-muted sm:w-36 sm:px-5 md:w-44">
                           {row.label}
                         </th>
-                        <td className="px-5 py-3.5">{row.value}</td>
+                        <td className="break-keep px-4 py-3.5 sm:px-5">{row.value}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -197,7 +197,7 @@ export default async function ProductDetailPage({
           {/* 상세 설명 */}
           <section className="mt-12">
             <h2 className="text-2xl font-bold">상품 상세</h2>
-            <div className="mt-6 whitespace-pre-line rounded-2xl border border-line bg-surface p-8 text-sm leading-relaxed text-muted">
+            <div className="mt-6 whitespace-pre-line break-keep rounded-2xl border border-line bg-surface p-5 text-sm leading-relaxed text-muted md:p-8">
               {product.description}
             </div>
           </section>
@@ -207,7 +207,7 @@ export default async function ProductDetailPage({
             <section className="mt-12">
               <h2 className="text-2xl font-bold">어떤 상품이 맞을까요?</h2>
               <div className="mt-6 overflow-x-auto rounded-2xl border border-line">
-                <table className="w-full text-left text-sm">
+                <table className="w-full min-w-[520px] text-left text-sm">
                   <thead>
                     <tr className="border-b border-line bg-surface-2/50 text-muted">
                       <th className="px-5 py-3.5 font-medium">구분</th>
@@ -305,10 +305,10 @@ export default async function ProductDetailPage({
                         key={row.label}
                         className={index % 2 === 0 ? "bg-surface" : "bg-surface-2/50"}
                       >
-                        <th className="w-36 px-4 py-3 align-top font-medium text-muted md:w-44">
+                        <th className="w-28 px-3 py-3 align-top font-medium text-muted sm:w-36 sm:px-4 md:w-44">
                           {row.label}
                         </th>
-                        <td className="px-4 py-3 leading-relaxed">{row.value}</td>
+                        <td className="break-keep px-3 py-3 leading-relaxed sm:px-4">{row.value}</td>
                       </tr>
                     ))}
                     <tr
@@ -316,12 +316,12 @@ export default async function ProductDetailPage({
                         content.notice.length % 2 === 0 ? "bg-surface" : "bg-surface-2/50"
                       }
                     >
-                      <th className="w-36 px-4 py-3 align-top font-medium text-muted md:w-44">
+                      <th className="w-28 px-3 py-3 align-top font-medium text-muted sm:w-36 sm:px-4 md:w-44">
                         판매자 정보
                       </th>
-                      <td className="px-4 py-3 leading-relaxed">
+                      <td className="break-keep px-3 py-3 leading-relaxed sm:px-4">
                         {SITE_INFO.companyName} · 대표 {SITE_INFO.ceo} · 사업자등록번호{" "}
-                        {SITE_INFO.businessNumber}
+                        {SITE_INFO.businessNumber} ({SITE_INFO.taxType})
                         {SITE_INFO.mailOrderNumber &&
                           ` · 통신판매업신고 ${SITE_INFO.mailOrderNumber}`}
                       </td>
@@ -345,7 +345,7 @@ export default async function ProductDetailPage({
               {PRICE_NOTE}
               {product.category === "PROGRAM"
                 ? " · 1회 결제 · 영구 사용권"
-                : " · 1회 결제 · 세금계산서 발행 가능"}
+                : " · 1회 결제 · 현금영수증 발행 가능"}
             </p>
             {alreadyPurchased ? (
               <Link
@@ -405,7 +405,8 @@ export default async function ProductDetailPage({
               <Link href="/terms" className="underline hover:text-foreground">
                 이용약관
               </Link>
-              의 청약철회 및 환불 조항을 따릅니다. 세금계산서 발행이 필요하면
+              의 청약철회 및 환불 조항을 따릅니다. 당사는 간이과세자로
+              세금계산서 발행이 불가하며, 현금영수증(지출증빙용)이 필요하면
               결제 후 문의해 주세요.
             </p>
           </div>
@@ -425,13 +426,13 @@ export default async function ProductDetailPage({
       )}
 
       {/* 하단 CTA */}
-      <section className="mt-16 rounded-2xl border border-line bg-gradient-to-br from-accent/15 via-surface to-surface p-10 text-center">
-        <h2 className="text-2xl font-bold">도입을 고민 중이신가요?</h2>
+      <section className="mt-16 rounded-2xl border border-line bg-gradient-to-br from-accent/15 via-surface to-surface p-6 text-center md:p-10">
+        <h2 className="text-xl font-bold md:text-2xl">도입을 고민 중이신가요?</h2>
         <p className="mx-auto mt-3 max-w-xl text-sm text-muted">
           업무 내용을 간단히 보내주시면 적용 가능 여부와 예상 절감 효과를 무료로
           진단해 드립니다.
         </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
           {!alreadyPurchased && (
             <Link
               href={checkoutHref}
@@ -448,6 +449,34 @@ export default async function ProductDetailPage({
           </a>
         </div>
       </section>
+
+      {/* 모바일 하단 고정 구매 바 (lg 미만) */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-background/95 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="min-w-0">
+            <p className="truncate text-xs text-muted">{product.name}</p>
+            <p className="text-lg font-bold">
+              {product.price.toLocaleString()}
+              <span className="ml-1 text-sm font-normal text-muted">원</span>
+            </p>
+          </div>
+          {alreadyPurchased ? (
+            <Link
+              href="/mypage"
+              className="shrink-0 rounded-lg border border-accent px-5 py-3 text-sm font-medium text-accent transition hover:bg-accent/10"
+            >
+              마이페이지
+            </Link>
+          ) : (
+            <Link
+              href={checkoutHref}
+              className="shrink-0 rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent/80"
+            >
+              구매하기
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
