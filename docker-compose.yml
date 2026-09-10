@@ -22,6 +22,9 @@ services:
     build:
       context: .
       target: builder
+      args:
+        NEXT_PUBLIC_PORTONE_STORE_ID: ${NEXT_PUBLIC_PORTONE_STORE_ID:-}
+        NEXT_PUBLIC_PORTONE_CHANNEL_KEY: ${NEXT_PUBLIC_PORTONE_CHANNEL_KEY:-}
     depends_on:
       db:
         condition: service_healthy
@@ -35,7 +38,12 @@ services:
     restart: "no"
 
   web:
-    build: .
+    build:
+      context: .
+      # 포트원 공개 키는 빌드 시 클라이언트 번들에 포함되므로 build arg로 전달 (값 변경 시 --build 필요)
+      args:
+        NEXT_PUBLIC_PORTONE_STORE_ID: ${NEXT_PUBLIC_PORTONE_STORE_ID:-}
+        NEXT_PUBLIC_PORTONE_CHANNEL_KEY: ${NEXT_PUBLIC_PORTONE_CHANNEL_KEY:-}
     restart: unless-stopped
     depends_on:
       db:

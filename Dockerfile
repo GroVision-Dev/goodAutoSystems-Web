@@ -17,6 +17,12 @@ RUN npx prisma generate
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 ENV AUTH_SECRET="build-time-secret"
 ENV AUTH_TRUST_HOST="true"
+# NEXT_PUBLIC_* 는 빌드 시점에 클라이언트 번들에 박히므로 build arg로 받아야 한다
+# (.env는 .dockerignore로 제외되어 있어 런타임 environment만으로는 결제창이 열리지 않음)
+ARG NEXT_PUBLIC_PORTONE_STORE_ID
+ARG NEXT_PUBLIC_PORTONE_CHANNEL_KEY
+ENV NEXT_PUBLIC_PORTONE_STORE_ID=$NEXT_PUBLIC_PORTONE_STORE_ID
+ENV NEXT_PUBLIC_PORTONE_CHANNEL_KEY=$NEXT_PUBLIC_PORTONE_CHANNEL_KEY
 RUN npm run build
 
 # ---------- 3) 실행 ----------
