@@ -34,7 +34,8 @@ docker compose up --build -d
 ```
 
 - 구성: `db`(PostgreSQL 16, `pgdata` 볼륨 영속화) → `migrate`(스키마 반영+시드 후 종료) → `web`(Next.js standalone)
-- 최초 기동 시 관리자 계정(아이디 `admin`, 비밀번호는 `SEED_ADMIN_PASSWORD`)과 기본 상품이 자동 생성됩니다
+- 최초 기동 시 관리자 계정(아이디 `optixdev1234`, 비밀번호는 `SEED_ADMIN_PASSWORD`)과 기본 상품이 자동 생성됩니다. 이전 배포의 `admin` 계정이 있으면 첫 기동 때 새 아이디로 전환되고 비밀번호도 `SEED_ADMIN_PASSWORD`로 재설정됩니다
+- 관리자 화면 경로는 `/optix-dev`입니다
 - `private-files/`는 호스트 바인드 마운트라 설치 파일을 서버에서 교체하면 재빌드 없이 반영됩니다
 - 재배포: `git pull && docker compose up --build -d`
 - `NEXT_PUBLIC_PORTONE_*` 값은 빌드 시 클라이언트 번들에 포함됩니다. `.env`에서 이 값을 바꾸면 `docker compose up --build -d`로 반드시 재빌드하세요 (`restart`만으로는 반영되지 않음)
@@ -46,7 +47,7 @@ docker compose up --build -d
 
 | 구분 | 아이디 | 비밀번호 | 휴대폰 |
 |------|--------|----------|--------|
-| 관리자 | admin | admin1234! | 010-0000-0001 |
+| 관리자 | optixdev1234 | optixdev1234 (`SEED_ADMIN_PASSWORD` 미설정 시) | 010-0000-0001 |
 | 일반회원 | user | test1234! | 010-0000-0002 |
 
 ## 환경 변수 (.env)

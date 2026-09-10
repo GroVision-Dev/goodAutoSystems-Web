@@ -5,17 +5,36 @@ const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
+// 관리자 아이디. 추측하기 쉬운 "admin"은 사용하지 않는다.
+const ADMIN_USERNAME = "optixdev1234";
+const LEGACY_ADMIN_USERNAME = "admin";
+
 async function main() {
   const adminPassword = await bcrypt.hash(
-    process.env.SEED_ADMIN_PASSWORD || "admin1234!",
+    process.env.SEED_ADMIN_PASSWORD || "optixdev1234",
     10
   );
 
+  // 기존 배포의 "admin" 계정은 새 아이디로 1회 전환 (비밀번호도 SEED_ADMIN_PASSWORD로 재설정)
+  const legacyAdmin = await prisma.user.findUnique({
+    where: { username: LEGACY_ADMIN_USERNAME },
+  });
+  const newAdminExists = await prisma.user.findUnique({
+    where: { username: ADMIN_USERNAME },
+  });
+  if (legacyAdmin && !newAdminExists) {
+    await prisma.user.update({
+      where: { id: legacyAdmin.id },
+      data: { username: ADMIN_USERNAME, passwordHash: adminPassword },
+    });
+    console.log(`관리자 아이디를 ${LEGACY_ADMIN_USERNAME} → ${ADMIN_USERNAME}로 전환했습니다.`);
+  }
+
   await prisma.user.upsert({
-    where: { username: "admin" },
+    where: { username: ADMIN_USERNAME },
     update: {},
     create: {
-      username: "admin",
+      username: ADMIN_USERNAME,
       phone: "01000000001",
       passwordHash: adminPassword,
       name: "관리자",

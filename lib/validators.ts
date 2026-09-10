@@ -2,7 +2,7 @@ import { z } from "zod";
 import { normalizePhone } from "@/lib/phone";
 
 export const USERNAME_PATTERN = /^[a-z][a-z0-9_]{3,19}$/;
-export const RESERVED_USERNAMES = ["admin", "root", "system", "withdrawn"];
+export const RESERVED_USERNAMES = ["admin", "root", "system", "withdrawn", "optixdev1234"];
 export const USERNAME_RULE_MESSAGE =
   "아이디는 영문 소문자로 시작하는 영문 소문자·숫자·밑줄(_) 4~20자입니다.";
 export const PHONE_RULE_MESSAGE =
