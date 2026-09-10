@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import PortOne from "@portone/browser-sdk/v2";
 
 type Props = { slug: string; invoiceId?: never } | { invoiceId: string; slug?: never };
@@ -14,11 +15,14 @@ export default function PortOneCheckout(props: Props) {
     orderName: string;
     customerName: string;
     customerPhone: string;
+    customerEmail: string;
   } | null>(null);
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  /** 이메일 도입 전 가입 회원은 이메일이 없어 결제창을 열 수 없다 (이니시스 V2 필수 항목) */
+  const [missingEmail, setMissingEmail] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +41,10 @@ export default function PortOneCheckout(props: Props) {
         const order = await res.json();
         if (cancelled) return;
         orderRef.current = order;
+        if (!order.customerEmail) {
+          setMissingEmail(true);
+          return;
+        }
         setReady(true);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "주문을 생성하지 못했습니다.");
@@ -74,6 +82,8 @@ export default function PortOneCheckout(props: Props) {
         customer: {
           fullName: order.customerName,
           phoneNumber: order.customerPhone,
+          // 이니시스 V2 등 일부 PG는 구매자 이메일이 필수
+          email: order.customerEmail,
         },
         // 모바일 등 리디렉션 방식일 때 결제창이 돌아올 주소
         redirectUrl: `${window.location.origin}/checkout/success`,
@@ -97,6 +107,24 @@ export default function PortOneCheckout(props: Props) {
     return (
       <div className="rounded-2xl border border-red-500/40 bg-surface p-8 text-center">
         <p className="text-red-400">{error}</p>
+      </div>
+    );
+  }
+
+  if (missingEmail) {
+    return (
+      <div className="rounded-2xl border border-accent-2/40 bg-surface p-8 text-center">
+        <p className="text-sm leading-relaxed text-muted">
+          결제사 요건상 구매자 이메일이 필요합니다.
+          <br />
+          마이페이지에서 이메일을 등록한 뒤 다시 결제해 주세요.
+        </p>
+        <Link
+          href="/mypage"
+          className="mt-5 inline-block rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent/80"
+        >
+          마이페이지에서 이메일 등록
+        </Link>
       </div>
     );
   }

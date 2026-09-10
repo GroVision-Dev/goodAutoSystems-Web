@@ -52,7 +52,7 @@ model User {
   username     String     @unique
   /// 휴대폰 번호 — 숫자만(01012345678), 문자 인증 완료된 번호
   phone        String     @unique
-  /// 가입 시 수집하지 않음. 과거 데이터 호환용
+  /// 가입 시 필수 입력 (결제사 구매자 정보·영수증 발송). 이메일 도입 전 가입 회원은 null → 마이페이지에서 등록
   email        String?    @unique
   passwordHash String
   name         String

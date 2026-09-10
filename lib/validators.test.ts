@@ -1,6 +1,12 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { usernameSchema, phoneSchema, registerSchema, loginSchema } from "./validators";
+import {
+  usernameSchema,
+  phoneSchema,
+  emailSchema,
+  registerSchema,
+  loginSchema,
+} from "./validators";
 
 describe("usernameSchema", () => {
   test("소문자·숫자·밑줄 4~20자 통과", () => {
@@ -51,11 +57,24 @@ describe("phoneSchema", () => {
   });
 });
 
+describe("emailSchema", () => {
+  test("공백·대문자를 정규화", () => {
+    assert.equal(emailSchema.parse("  Hong@Example.COM "), "hong@example.com");
+  });
+
+  test("형식 오류는 거부", () => {
+    for (const bad of ["", "hong", "hong@", "@example.com", "hong@example"]) {
+      assert.equal(emailSchema.safeParse(bad).success, false, bad);
+    }
+  });
+});
+
 describe("registerSchema", () => {
   test("정상 입력 파싱", () => {
     const parsed = registerSchema.parse({
       username: "Hong_gd",
       name: "홍길동",
+      email: "Hong@Example.com",
       phone: "010-1234-5678",
       password: "password1",
       code: "123456",
@@ -63,16 +82,29 @@ describe("registerSchema", () => {
     assert.deepEqual(parsed, {
       username: "hong_gd",
       name: "홍길동",
+      email: "hong@example.com",
       phone: "01012345678",
       password: "password1",
       code: "123456",
     });
   });
 
+  test("이메일이 없으면 거부", () => {
+    const result = registerSchema.safeParse({
+      username: "hong",
+      name: "홍길동",
+      phone: "01012345678",
+      password: "password1",
+      code: "123456",
+    });
+    assert.equal(result.success, false);
+  });
+
   test("코드가 6자리 숫자가 아니면 거부", () => {
     const result = registerSchema.safeParse({
       username: "hong",
       name: "홍길동",
+      email: "hong@example.com",
       phone: "01012345678",
       password: "password1",
       code: "12ab",

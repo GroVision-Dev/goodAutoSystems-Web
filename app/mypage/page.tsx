@@ -68,6 +68,12 @@ export default async function MyPage() {
             <dd>{formatPhone(user.phone)}</dd>
           </div>
           <div className="flex gap-4">
+            <dt className="w-16 text-muted">이메일</dt>
+            <dd>
+              {user.email ?? <span className="text-accent-2">미등록 · 아래에서 등록해 주세요</span>}
+            </dd>
+          </div>
+          <div className="flex gap-4">
             <dt className="w-16 text-muted">가입일</dt>
             <dd>{user.createdAt.toLocaleDateString("ko-KR")}</dd>
           </div>
@@ -77,7 +83,7 @@ export default async function MyPage() {
         </p>
       </div>
 
-      <AccountSettings name={user.name} />
+      <AccountSettings name={user.name} email={user.email} />
 
       {/* 월 결제 */}
       {(invoices.length > 0 || user.monthlyAmount) && (

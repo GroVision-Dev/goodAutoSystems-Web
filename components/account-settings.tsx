@@ -17,7 +17,13 @@ function FormMessage({ state }: { state: AccountFormState }) {
   return null;
 }
 
-export default function AccountSettings({ name }: { name: string }) {
+export default function AccountSettings({
+  name,
+  email,
+}: {
+  name: string;
+  email: string | null;
+}) {
   const [profileState, profileAction, profilePending] = useActionState<
     AccountFormState,
     FormData
@@ -37,23 +43,40 @@ export default function AccountSettings({ name }: { name: string }) {
       <h2 className="font-bold">계정 설정</h2>
 
       <div className="mt-6 grid gap-8 md:grid-cols-2">
-        {/* 이름 변경 */}
+        {/* 이름·이메일 변경 */}
         <form action={profileAction} className="flex flex-col gap-3">
-          <p className="text-sm font-medium">이름 변경</p>
+          <p className="text-sm font-medium">회원 정보 변경</p>
           <input
             name="name"
             defaultValue={name}
             required
             minLength={2}
+            placeholder="이름"
             className={inputClass}
           />
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            defaultValue={email ?? ""}
+            required
+            maxLength={254}
+            placeholder="이메일 (결제 영수증 발송)"
+            className={inputClass}
+          />
+          {!email && (
+            <p className="text-xs text-accent-2">
+              결제사 요건상 이메일이 필요합니다. 결제 전에 등록해 주세요.
+            </p>
+          )}
           <FormMessage state={profileState} />
           <button
             type="submit"
             disabled={profilePending}
             className="w-fit rounded-lg border border-line px-5 py-2 text-sm transition hover:border-accent/60 disabled:opacity-50"
           >
-            {profilePending ? "저장 중..." : "이름 저장"}
+            {profilePending ? "저장 중..." : "정보 저장"}
           </button>
         </form>
 

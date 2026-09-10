@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { emailSchema } from "@/lib/validators";
 
 export interface AccountFormState {
   error?: string;
@@ -18,7 +20,8 @@ async function requireUser() {
 }
 
 const profileSchema = z.object({
-  name: z.string().min(2, "이름은 2자 이상이어야 합니다."),
+  name: z.string().trim().min(2, "이름은 2자 이상이어야 합니다."),
+  email: emailSchema,
 });
 
 export async function updateProfile(
@@ -26,17 +29,27 @@ export async function updateProfile(
   formData: FormData
 ): Promise<AccountFormState> {
   const session = await requireUser();
-  const parsed = profileSchema.safeParse({ name: formData.get("name") });
+  const parsed = profileSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+  });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "입력값이 올바르지 않습니다." };
   }
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: { name: parsed.data.name },
-  });
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { name: parsed.data.name, email: parsed.data.email },
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return { error: "다른 계정에서 이미 사용 중인 이메일입니다." };
+    }
+    throw e;
+  }
   revalidatePath("/mypage");
-  return { ok: "이름이 변경되었습니다. 다음 로그인부터 화면에 반영됩니다." };
+  return { ok: "회원 정보가 저장되었습니다. 이름은 다음 로그인부터 화면에 반영됩니다." };
 }
 
 const passwordSchema = z.object({

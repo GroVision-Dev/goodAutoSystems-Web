@@ -25,9 +25,20 @@ export const phoneSchema = z.string().transform((value, ctx) => {
   return normalized;
 });
 
+export const EMAIL_RULE_MESSAGE = "올바른 이메일 주소를 입력해 주세요.";
+
+/** 앞뒤 공백 제거·소문자 정규화. 결제사(PG) 구매자 정보와 영수증 발송에 사용 */
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email(EMAIL_RULE_MESSAGE)
+  .max(254, EMAIL_RULE_MESSAGE);
+
 export const registerSchema = z.object({
   username: usernameSchema,
   name: z.string().trim().min(2, "이름은 2자 이상이어야 합니다."),
+  email: emailSchema,
   phone: phoneSchema,
   password: z.string().min(8, "비밀번호는 8자 이상이어야 합니다."),
   code: z.string().regex(/^\d{6}$/, "인증코드 6자리를 입력해 주세요."),

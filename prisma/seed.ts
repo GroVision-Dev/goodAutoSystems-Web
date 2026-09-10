@@ -28,6 +28,7 @@ async function main() {
     create: {
       username: "user",
       phone: "01000000002",
+      email: "user@example.com",
       passwordHash: userPassword,
       name: "테스트회원",
     },

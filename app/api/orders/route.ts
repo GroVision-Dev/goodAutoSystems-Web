@@ -20,10 +20,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  // 결제창 고객정보용 휴대폰 번호 (세션에는 넣지 않고 매번 조회)
+  // 결제창 고객정보용 휴대폰 번호·이메일 (세션에는 넣지 않고 매번 조회)
+  // 이메일은 이니시스 V2 등 일부 PG에서 필수라 결제 화면에서 입력받아 채운다
   const customer = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { phone: true },
+    select: { phone: true, email: true },
   });
   if (!customer) {
     return NextResponse.json({ error: "계정을 찾을 수 없습니다." }, { status: 401 });
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
       orderName,
       customerName: session.user.name,
       customerPhone: customer.phone,
+      customerEmail: customer.email ?? "",
     });
   }
 

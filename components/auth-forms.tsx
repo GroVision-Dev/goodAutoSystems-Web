@@ -201,6 +201,7 @@ export function RegisterForm() {
 
     const form = new FormData(e.currentTarget);
     const name = form.get("name") as string;
+    const email = form.get("email") as string;
     const phone = form.get("phone") as string;
     const password = form.get("password") as string;
     const passwordConfirm = form.get("passwordConfirm") as string;
@@ -223,7 +224,7 @@ export function RegisterForm() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, name, phone, password, code }),
+      body: JSON.stringify({ username, name, email, phone, password, code }),
     });
 
     if (!res.ok) {
@@ -288,6 +289,17 @@ export function RegisterForm() {
         autoComplete="name"
         required
         placeholder="이름"
+        className={inputClass}
+      />
+
+      <input
+        name="email"
+        type="email"
+        autoComplete="email"
+        autoCapitalize="none"
+        required
+        maxLength={254}
+        placeholder="이메일 (결제 영수증 발송)"
         className={inputClass}
       />
 
