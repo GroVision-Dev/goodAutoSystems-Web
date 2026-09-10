@@ -48,7 +48,7 @@ export default async function AdminOrdersPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">주문내역</h1>
-        <form className="flex gap-2 text-sm">
+        <form className="flex w-full flex-wrap gap-2 text-sm sm:w-auto">
           <select
             name="status"
             defaultValue={status ?? ""}
@@ -64,7 +64,7 @@ export default async function AdminOrdersPage({
             name="q"
             defaultValue={q ?? ""}
             placeholder="주문번호/회원/상품 검색"
-            className="w-52 rounded-lg border border-line bg-surface-2 px-3 py-2 text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-line bg-surface-2 px-3 py-2 text-foreground placeholder:text-muted focus:border-accent focus:outline-none sm:w-52 sm:flex-none"
           />
           <button
             type="submit"
@@ -83,17 +83,17 @@ export default async function AdminOrdersPage({
       </p>
 
       <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[960px] text-left text-sm">
           <thead>
-            <tr className="border-b border-line text-muted">
-              <th className="p-4 font-normal">주문번호</th>
-              <th className="p-4 font-normal">회원</th>
-              <th className="p-4 font-normal">상품</th>
-              <th className="p-4 font-normal">금액</th>
-              <th className="p-4 font-normal">상태</th>
-              <th className="p-4 font-normal">결제수단</th>
-              <th className="p-4 font-normal">주문일시</th>
-              <th className="p-4 font-normal">관리</th>
+            <tr className="border-b border-line text-xs text-muted">
+              <th className="whitespace-nowrap p-4 font-normal">주문번호</th>
+              <th className="whitespace-nowrap p-4 font-normal">회원</th>
+              <th className="whitespace-nowrap p-4 font-normal">상품</th>
+              <th className="whitespace-nowrap p-4 font-normal">금액</th>
+              <th className="whitespace-nowrap p-4 font-normal">상태</th>
+              <th className="whitespace-nowrap p-4 font-normal">결제수단</th>
+              <th className="whitespace-nowrap p-4 font-normal">주문일시</th>
+              <th className="whitespace-nowrap p-4 font-normal">관리</th>
             </tr>
           </thead>
           <tbody>
@@ -108,8 +108,8 @@ export default async function AdminOrdersPage({
                 const badge = STATUS_LABEL[order.status];
                 return (
                   <tr key={order.id} className="border-b border-line/50 align-top">
-                    <td className="p-4 font-mono text-xs">{order.orderId}</td>
-                    <td className="p-4">
+                    <td className="whitespace-nowrap p-4 font-mono text-xs">{order.orderId}</td>
+                    <td className="whitespace-nowrap p-4">
                       {order.user.name}
                       <span className="block text-xs text-muted">
                         {order.user.username}
@@ -129,10 +129,10 @@ export default async function AdminOrdersPage({
                         "—"
                       )}
                     </td>
-                    <td className="p-4">{order.amount.toLocaleString()}원</td>
+                    <td className="whitespace-nowrap p-4">{order.amount.toLocaleString()}원</td>
                     <td className="p-4">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs ${badge.className}`}
+                        className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs ${badge.className}`}
                       >
                         {badge.label}
                       </span>
@@ -142,8 +142,8 @@ export default async function AdminOrdersPage({
                         </span>
                       )}
                     </td>
-                    <td className="p-4 text-muted">{order.method ?? "-"}</td>
-                    <td className="p-4 text-muted">
+                    <td className="whitespace-nowrap p-4 text-muted">{order.method ?? "-"}</td>
+                    <td className="whitespace-nowrap p-4 text-xs text-muted">
                       {order.createdAt.toLocaleString("ko-KR")}
                     </td>
                     <td className="p-4">

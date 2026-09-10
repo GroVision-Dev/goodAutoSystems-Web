@@ -12,11 +12,21 @@ const ORDER_STATUS: Record<string, { label: string; className: string }> = {
 };
 
 export default async function AdminDashboardPage() {
-  const [userCount, productCount, paidOrders, recentOrders, recentUsers] =
+  const [
+    userCount,
+    productCount,
+    paidOrders,
+    pendingOrderCount,
+    unpaidInvoices,
+    recentOrders,
+    recentUsers,
+  ] =
     await Promise.all([
       prisma.user.count({ where: { status: { not: "WITHDRAWN" } } }),
       prisma.product.count(),
       prisma.order.findMany({ where: { status: "PAID" } }),
+      prisma.order.count({ where: { status: "PENDING" } }),
+      prisma.invoice.findMany({ where: { status: "UNPAID" }, select: { amount: true } }),
       prisma.order.findMany({
         include: { user: true, product: true, invoice: true },
         orderBy: { createdAt: "desc" },
@@ -36,23 +46,56 @@ export default async function AdminDashboardPage() {
     .filter((order) => order.paidAt && order.paidAt >= monthStart)
     .reduce((sum, order) => sum + order.amount, 0);
 
-  const stats = [
-    { label: "전체 회원", value: `${userCount.toLocaleString()}명` },
-    { label: "결제 완료 주문", value: `${paidOrders.length.toLocaleString()}건` },
-    { label: "이번 달 매출", value: `${monthRevenue.toLocaleString()}원` },
-    { label: "누적 매출", value: `${totalRevenue.toLocaleString()}원` },
+  const unpaidTotal = unpaidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+
+  const stats: { label: string; value: string; href: string; hint?: string; warn?: boolean }[] = [
+    { label: "이번 달 매출", value: `${monthRevenue.toLocaleString()}원`, href: "/optix-dev/orders?status=PAID" },
+    { label: "누적 매출", value: `${totalRevenue.toLocaleString()}원`, href: "/optix-dev/orders?status=PAID" },
+    {
+      label: "결제 완료 주문",
+      value: `${paidOrders.length.toLocaleString()}건`,
+      href: "/optix-dev/orders?status=PAID",
+    },
+    {
+      label: "결제 대기 주문",
+      value: `${pendingOrderCount.toLocaleString()}건`,
+      href: "/optix-dev/orders?status=PENDING",
+      hint: "결제창을 열었지만 완료되지 않은 주문",
+    },
+    {
+      label: "미납 청구서",
+      value: `${unpaidInvoices.length.toLocaleString()}건`,
+      href: "/optix-dev/billing?status=UNPAID",
+      hint: unpaidInvoices.length > 0 ? `${unpaidTotal.toLocaleString()}원` : undefined,
+      warn: unpaidInvoices.length > 0,
+    },
+    {
+      label: "전체 회원",
+      value: `${userCount.toLocaleString()}명`,
+      href: "/optix-dev/users",
+      hint: `등록 상품 ${productCount}개`,
+    },
   ];
 
   return (
     <div>
       <h1 className="text-2xl font-bold">대시보드</h1>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => (
-          <div key={stat.label} className="rounded-2xl border border-line bg-surface p-6">
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className={`rounded-2xl border bg-surface p-5 transition hover:border-accent/50 ${
+              stat.warn ? "border-yellow-500/40" : "border-line"
+            }`}
+          >
             <p className="text-sm text-muted">{stat.label}</p>
-            <p className="mt-2 text-2xl font-bold">{stat.value}</p>
-          </div>
+            <p className={`mt-2 text-2xl font-bold ${stat.warn ? "text-yellow-400" : ""}`}>
+              {stat.value}
+            </p>
+            {stat.hint && <p className="mt-1 text-xs text-muted">{stat.hint}</p>}
+          </Link>
         ))}
       </div>
 
@@ -89,7 +132,7 @@ export default async function AdminDashboardPage() {
                         {order.createdAt.toLocaleString("ko-KR")}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-3">
+                    <div className="flex shrink-0 items-center gap-3 whitespace-nowrap">
                       <span>{order.amount.toLocaleString()}원</span>
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs ${badge.className}`}
@@ -135,12 +178,6 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <p className="mt-6 text-xs text-muted">
-        등록 상품 {productCount}개 ·{" "}
-        <Link href="/optix-dev/products" className="text-accent hover:underline">
-          상품관리로 이동
-        </Link>
-      </p>
     </div>
   );
 }

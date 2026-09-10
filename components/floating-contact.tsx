@@ -1,7 +1,13 @@
-import Link from "next/link";
+"use client";
 
-/** 우하단 상시 노출 문의 버튼 */
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+/** 우하단 상시 노출 문의 버튼 (관리자 화면에서는 표시하지 않음) */
 export default function FloatingContact() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/optix-dev")) return null;
+
   return (
     <Link
       href="/#contact"

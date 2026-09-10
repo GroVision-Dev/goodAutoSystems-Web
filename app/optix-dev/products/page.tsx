@@ -27,26 +27,30 @@ export default async function AdminProductsPage({
       <h1 className="text-2xl font-bold">상품관리</h1>
 
       <div className="mt-8 overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[720px] text-left text-sm">
           <thead>
-            <tr className="border-b border-line text-muted">
-              <th className="p-4 font-normal">상품명</th>
-              <th className="p-4 font-normal">카테고리</th>
-              <th className="p-4 font-normal">가격</th>
-              <th className="p-4 font-normal">노출</th>
-              <th className="p-4 font-normal">관리</th>
+            <tr className="border-b border-line text-xs text-muted">
+              <th className="whitespace-nowrap p-4 font-normal">상품명</th>
+              <th className="whitespace-nowrap p-4 font-normal">카테고리</th>
+              <th className="whitespace-nowrap p-4 font-normal">가격</th>
+              <th className="whitespace-nowrap p-4 font-normal">판매</th>
+              <th className="whitespace-nowrap p-4 font-normal">노출</th>
+              <th className="whitespace-nowrap p-4 font-normal">관리</th>
             </tr>
           </thead>
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="border-b border-line/50">
                 <td className="p-4">
-                  {product.name}
-                  <span className="block text-xs text-muted">{product.slug}</span>
+                  <span className={editing?.id === product.id ? "font-medium text-accent" : ""}>
+                    {product.name}
+                  </span>
+                  <span className="block font-mono text-xs text-muted">{product.slug}</span>
                 </td>
-                <td className="p-4">{CATEGORY_LABEL[product.category]}</td>
-                <td className="p-4">{product.price.toLocaleString()}원</td>
-                <td className="p-4">
+                <td className="whitespace-nowrap p-4">{CATEGORY_LABEL[product.category]}</td>
+                <td className="whitespace-nowrap p-4">{product.price.toLocaleString()}원</td>
+                <td className="whitespace-nowrap p-4 text-muted">{product._count.orders}건</td>
+                <td className="whitespace-nowrap p-4">
                   {product.isActive ? (
                     <span className="rounded-full bg-accent/15 px-2.5 py-1 text-xs text-accent">
                       노출중
@@ -57,10 +61,10 @@ export default async function AdminProductsPage({
                     </span>
                   )}
                 </td>
-                <td className="p-4">
+                <td className="whitespace-nowrap p-4">
                   <div className="flex gap-2">
                     <Link
-                      href={`/optix-dev/products?edit=${product.id}`}
+                      href={`/optix-dev/products?edit=${product.id}#product-form`}
                       className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition hover:text-foreground"
                     >
                       수정
@@ -101,7 +105,11 @@ export default async function AdminProductsPage({
         </table>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
+      <p className="mt-3 text-xs text-muted">
+        주문이 있는 상품은 삭제할 수 없습니다. 판매를 멈추려면 &quot;숨기기&quot;를 사용하세요.
+      </p>
+
+      <div id="product-form" className="mt-8 scroll-mt-24 rounded-2xl border border-line bg-surface p-6">
         <div className="flex items-center justify-between">
           <h2 className="font-bold">{editing ? `상품 수정 — ${editing.name}` : "새 상품 등록"}</h2>
           {editing && (

@@ -86,11 +86,12 @@ export default async function AdminBillingPage({
             조회 결과 미납 {unpaidTotal.toLocaleString()}원 · 납부 완료 {paidTotal.toLocaleString()}원
           </p>
         </div>
-        <form className="flex flex-wrap gap-2 text-sm">
+        <form className="flex w-full flex-wrap gap-2 text-sm lg:w-auto">
           <input
             type="month"
             name="month"
             defaultValue={month ?? ""}
+            aria-label="청구 월"
             className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-foreground focus:border-accent focus:outline-none"
           />
           <select
@@ -119,16 +120,16 @@ export default async function AdminBillingPage({
       </div>
 
       <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table className="w-full text-left text-sm">
+        <table className="w-full min-w-[800px] text-left text-sm">
           <thead>
-            <tr className="border-b border-line text-muted">
-              <th className="p-4 font-normal">청구 월</th>
-              <th className="p-4 font-normal">회원</th>
-              <th className="p-4 font-normal">항목</th>
-              <th className="p-4 font-normal">금액</th>
-              <th className="p-4 font-normal">상태</th>
-              <th className="p-4 font-normal">납부일</th>
-              <th className="p-4 font-normal">관리</th>
+            <tr className="border-b border-line text-xs text-muted">
+              <th className="whitespace-nowrap p-4 font-normal">청구 월</th>
+              <th className="whitespace-nowrap p-4 font-normal">회원</th>
+              <th className="whitespace-nowrap p-4 font-normal">항목</th>
+              <th className="whitespace-nowrap p-4 font-normal">금액</th>
+              <th className="whitespace-nowrap p-4 font-normal">상태</th>
+              <th className="whitespace-nowrap p-4 font-normal">납부일</th>
+              <th className="whitespace-nowrap p-4 font-normal">관리</th>
             </tr>
           </thead>
           <tbody>
@@ -144,7 +145,7 @@ export default async function AdminBillingPage({
                 return (
                   <tr key={inv.id} className="border-b border-line/50">
                     <td className="p-4 whitespace-nowrap">{formatBillingMonth(inv.billingMonth)}</td>
-                    <td className="p-4">
+                    <td className="whitespace-nowrap p-4">
                       <p>{inv.user.name}</p>
                       <p className="text-xs text-muted">{inv.user.username}</p>
                     </td>
@@ -154,7 +155,7 @@ export default async function AdminBillingPage({
                     </td>
                     <td className="p-4 whitespace-nowrap">{inv.amount.toLocaleString()}원</td>
                     <td className="p-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs ${badge.className}`}>
+                      <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs ${badge.className}`}>
                         {badge.label}
                       </span>
                     </td>

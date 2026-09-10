@@ -131,26 +131,28 @@ export function MonthlyFeeForm({
   return (
     <form action={action} className="flex flex-col gap-1.5">
       <input type="hidden" name="userId" value={userId} />
-      <div className="flex gap-1.5">
+      <div className="flex flex-nowrap gap-1.5">
         <input
           type="number"
           name="amount"
           defaultValue={amount ?? ""}
-          placeholder="금액"
+          placeholder="금액(원)"
           min={0}
           step={100}
+          aria-label="월 결제 금액"
           className={`${inputClass} w-24 px-2 py-1.5 text-xs`}
         />
         <input
           name="title"
           defaultValue={title ?? ""}
           placeholder="항목명"
-          className={`${inputClass} w-24 px-2 py-1.5 text-xs`}
+          aria-label="월 결제 항목명"
+          className={`${inputClass} w-28 px-2 py-1.5 text-xs`}
         />
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted transition hover:border-accent/60 hover:text-foreground disabled:opacity-50"
+          className="shrink-0 whitespace-nowrap rounded-lg border border-line px-2.5 py-1.5 text-xs text-muted transition hover:border-accent/60 hover:text-foreground disabled:opacity-50"
         >
           {pending ? "저장..." : "저장"}
         </button>
