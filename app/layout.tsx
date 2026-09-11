@@ -3,6 +3,7 @@ import "./globals.css";
 import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import FloatingContact from "@/components/floating-contact";
+import PageViewTracker from "@/components/page-view-tracker";
 
 export const metadata: Metadata = {
   title: {
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main className="flex-1">{children}</main>
         <SiteFooter />
         <FloatingContact />
+        <PageViewTracker />
       </body>
     </html>
   );

@@ -103,6 +103,26 @@ model Invoice {
   @@unique([userId, billingMonth])
 }
 
+/// 홈페이지 접속 기록 — 관리자 접속 통계용. 회원은 userId, 비회원은 쿠키 기반 visitorId로 구분
+model PageView {
+  id        String   @id @default(cuid())
+  /// 조회한 경로 (쿼리 제외, 200자 제한)
+  path      String
+  /// 로그인 회원이면 회원 ID (탈퇴·삭제와 무관하게 참조 없이 보관)
+  userId    String?
+  /// 익명 방문자 쿠키 ID
+  visitorId String
+  /// 마스킹된 IP (예: 211.234.xx.xx)
+  ipMasked  String?
+  userAgent String?
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId, createdAt])
+  @@index([userId, createdAt])
+}
+
 model Order {
   id         String      @id @default(cuid())
   userId     String
