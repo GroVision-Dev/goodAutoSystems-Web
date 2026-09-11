@@ -220,7 +220,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
     ],
     specsTitle: "포함 내역",
     specs: [
-      { label: "이용료", value: "월 490,000원 (1개월 기준, 부가세 포함)" },
+      { label: "이용료", value: "월 990,000원 (1개월 기준, 부가세 포함)" },
       { label: "계약 기간", value: "1~2개월 · 월 단위 용역 (첫 달 결제 후 담당자와 협의해 확정)" },
       { label: "결제 방식", value: "첫 달은 구매 시 결제 · 다음 달부터 매월 결제일에 청구서로 결제" },
       { label: "대상", value: "소규모 팀 (1개 업무 프로세스)" },
@@ -283,7 +283,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
     notice: [
       { label: "서비스 제공자", value: "옵틱스(Optix)" },
       { label: "서비스 내용", value: "업무 진단 · AI 문서 분류/요약 및 이메일/보고서 자동 작성 워크플로 구축 · 교육 1회 · 계약 기간 중 운영 지원" },
-      { label: "이용료 · 결제", value: "월 490,000원 (1개월 기준). 첫 달은 구매 시 결제, 이후 매월 결제일에 청구서 결제" },
+      { label: "이용료 · 결제", value: "월 990,000원 (1개월 기준). 첫 달은 구매 시 결제, 이후 매월 결제일에 청구서 결제" },
       { label: "서비스 기간", value: "1~2개월 월 단위 용역 (결제 후 영업일 1일 내 일정·계약 기간 협의)" },
       { label: "제공 방식", value: "원격 진행 기본 (방문 시 별도 협의)" },
       { label: "청약철회 · 환불", value: "해당 월 업무 착수 전 그 달 이용료 전액 환불. 착수 후에는 진행 단계에 따라 잔여 금액 환불. 제공 완료된 달은 환불 불가" },
@@ -356,7 +356,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
     ],
     specsTitle: "포함 내역",
     specs: [
-      { label: "이용료", value: "월 1,900,000원 (1개월 기준, 부가세 포함)" },
+      { label: "이용료", value: "월 2,500,000원 (1개월 기준, 부가세 포함)" },
       { label: "계약 기간", value: "1~3개월 · 월 단위 용역 (첫 달 결제 후 담당 매니저와 협의해 확정)" },
       { label: "결제 방식", value: "첫 달은 구매 시 결제 · 다음 달부터 매월 결제일에 청구서로 결제" },
       { label: "대상", value: "중소·중견 기업 (최대 5개 부서)" },
@@ -419,7 +419,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
     notice: [
       { label: "서비스 제공자", value: "옵틱스(Optix)" },
       { label: "서비스 내용", value: "전사 진단·로드맵 · 최대 5개 부서 AI 워크플로 구축 · ERP/그룹웨어 연동 · 임직원 교육 2회 · 계약 기간 중 전담 매니저 운영 지원" },
-      { label: "이용료 · 결제", value: "월 1,900,000원 (1개월 기준). 첫 달은 구매 시 결제, 이후 매월 결제일에 청구서 결제" },
+      { label: "이용료 · 결제", value: "월 2,500,000원 (1개월 기준). 첫 달은 구매 시 결제, 이후 매월 결제일에 청구서 결제" },
       { label: "서비스 기간", value: "1~3개월 월 단위 용역 (결제 후 영업일 1일 내 일정·계약 기간 협의)" },
       { label: "제공 방식", value: "원격 + 방문 병행 (출장비 별도 협의)" },
       { label: "청약철회 · 환불", value: "해당 월 업무 착수 전 그 달 이용료 전액 환불. 착수 후에는 진행 단계에 따라 잔여 금액 환불. 제공 완료된 달은 환불 불가" },
@@ -438,7 +438,7 @@ export const PRODUCT_CONTENT: Record<string, ProductContent> = {
 /** AI 서비스 상품 비교표 (스타터·엔터프라이즈 상세페이지에 노출) */
 export const AI_SERVICE_COMPARISON = {
   rows: [
-    { label: "월 이용료", starter: "월 490,000원", enterprise: "월 1,900,000원" },
+    { label: "월 이용료", starter: "월 990,000원", enterprise: "월 2,500,000원" },
     { label: "계약 기간", starter: "1~2개월", enterprise: "1~3개월" },
     { label: "대상 규모", starter: "소규모 팀", enterprise: "중소·중견 기업" },
     { label: "자동화 범위", starter: "1개 업무 프로세스", enterprise: "최대 5개 부서" },

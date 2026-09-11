@@ -32,7 +32,7 @@ export function pricePrefix(product: Pick<PricedProduct, "billingType">): string
   return isMonthly(product) ? "월 " : "";
 }
 
-/** "월 1,900,000원" / "99,000원" */
+/** "월 2,500,000원" / "300,000원" */
 export function priceLabel(product: Pick<PricedProduct, "price" | "billingType">): string {
   return `${pricePrefix(product)}${product.price.toLocaleString()}원`;
 }

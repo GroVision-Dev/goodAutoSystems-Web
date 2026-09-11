@@ -72,7 +72,7 @@ export default function AdminProductForm({ product }: { product?: Product }) {
             required
             min={100}
             defaultValue={product?.price}
-            placeholder={monthly ? "1900000" : "99000"}
+            placeholder={monthly ? "2500000" : "300000"}
             className={inputClass}
           />
         </label>
