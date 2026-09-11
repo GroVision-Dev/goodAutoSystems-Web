@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const MENU = [
   { href: "/optix-dev", label: "대시보드", icon: "◫" },
+  { href: "/optix-dev/inquiries", label: "문의 관리", icon: "✉" },
   { href: "/optix-dev/users", label: "회원관리", icon: "👤" },
   { href: "/optix-dev/products", label: "상품관리", icon: "▦" },
   { href: "/optix-dev/orders", label: "주문내역", icon: "≡" },

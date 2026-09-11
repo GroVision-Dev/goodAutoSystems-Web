@@ -375,12 +375,12 @@ export default async function ProductDetailPage({
                 {monthly ? "첫 달 결제하고 시작하기" : "구매하기"}
               </Link>
             )}
-            <a
-              href="mailto:contact@goodautosystems.com?subject=%EB%8F%84%EC%9E%85%20%EB%AC%B8%EC%9D%98"
+            <Link
+              href={`/contact?product=${product.slug}`}
               className="mt-3 block rounded-lg border border-line py-3 text-center text-sm text-muted transition hover:border-accent/60 hover:text-foreground"
             >
               도입 전 문의하기
-            </a>
+            </Link>
 
             {monthly ? (
               <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
@@ -473,12 +473,12 @@ export default async function ProductDetailPage({
               {product.name} {monthly ? "시작하기" : "구매하기"}
             </Link>
           )}
-          <a
-            href="mailto:contact@goodautosystems.com?subject=%EB%8F%84%EC%9E%85%20%EB%AC%B8%EC%9D%98"
+          <Link
+            href={`/contact?product=${product.slug}`}
             className="rounded-lg border border-line px-8 py-3 font-medium text-muted transition hover:border-accent/60 hover:text-foreground"
           >
             무료 진단 문의
-          </a>
+          </Link>
         </div>
       </section>
 

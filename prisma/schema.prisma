@@ -114,6 +114,35 @@ model Invoice {
   @@unique([userId, billingMonth])
 }
 
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  DONE
+}
+
+/// 도입 문의 — 홈 문의 섹션·/contact 폼으로 접수. 관리자 문의 관리에서 확인·처리
+model Inquiry {
+  id          String        @id @default(cuid())
+  name        String
+  /// 숫자만 (01012345678)
+  phone       String
+  email       String?
+  company     String?
+  /// 관심 상품 슬러그 (선택)
+  productSlug String?
+  message     String
+  status      InquiryStatus @default(NEW)
+  /// 관리자 처리 메모 (회원에게 보이지 않음)
+  adminMemo   String?
+  /// 로그인 상태로 남겼으면 회원 ID
+  userId      String?
+  ipMasked    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}
+
 /// 홈페이지 접속 기록 — 관리자 접속 통계용. 회원은 userId, 비회원은 쿠키 기반 visitorId로 구분
 model PageView {
   id        String   @id @default(cuid())

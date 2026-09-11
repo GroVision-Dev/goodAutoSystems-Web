@@ -18,6 +18,7 @@ export default async function AdminDashboardPage() {
     paidOrders,
     pendingOrderCount,
     unpaidInvoices,
+    newInquiryCount,
     recentOrders,
     recentUsers,
   ] =
@@ -27,6 +28,7 @@ export default async function AdminDashboardPage() {
       prisma.order.findMany({ where: { status: "PAID" } }),
       prisma.order.count({ where: { status: "PENDING" } }),
       prisma.invoice.findMany({ where: { status: "UNPAID" }, select: { amount: true } }),
+      prisma.inquiry.count({ where: { status: "NEW" } }),
       prisma.order.findMany({
         include: { user: true, product: true, invoice: true },
         orderBy: { createdAt: "desc" },
@@ -49,6 +51,13 @@ export default async function AdminDashboardPage() {
   const unpaidTotal = unpaidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
   const stats: { label: string; value: string; href: string; hint?: string; warn?: boolean }[] = [
+    {
+      label: "새 도입 문의",
+      value: `${newInquiryCount.toLocaleString()}건`,
+      href: "/optix-dev/inquiries?status=NEW",
+      hint: newInquiryCount > 0 ? "아직 확인하지 않은 문의" : "미확인 문의 없음",
+      warn: newInquiryCount > 0,
+    },
     { label: "이번 달 매출", value: `${monthRevenue.toLocaleString()}원`, href: "/optix-dev/orders?status=PAID" },
     { label: "누적 매출", value: `${totalRevenue.toLocaleString()}원`, href: "/optix-dev/orders?status=PAID" },
     {

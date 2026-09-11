@@ -39,12 +39,9 @@ export default function SiteFooter() {
               <Link href="/mypage" className="text-muted hover:text-foreground">
                 마이페이지
               </Link>
-              <a
-                href="mailto:contact@goodautosystems.com"
-                className="text-muted hover:text-foreground"
-              >
+              <Link href="/contact" className="text-muted hover:text-foreground">
                 도입 문의
-              </a>
+              </Link>
               <Link href="/terms" className="text-muted hover:text-foreground">
                 이용약관
               </Link>
