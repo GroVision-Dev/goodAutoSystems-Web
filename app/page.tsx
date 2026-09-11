@@ -112,7 +112,7 @@ const FAQS = [
   },
   {
     q: "결제는 어떻게 하나요? 세금계산서 발행이 가능한가요?",
-    a: "카드·계좌이체 등 토스페이먼츠를 통해 안전하게 결제됩니다. 당사는 간이과세자로 세금계산서 발행이 불가하며, 카드 매출전표 또는 현금영수증(지출증빙용)으로 증빙하실 수 있습니다.",
+    a: "결제대행사 포트원(PortOne)을 통해 카드로 안전하게 결제됩니다. 당사는 간이과세자로 세금계산서 발행이 불가하며, 카드 매출전표 또는 현금영수증(지출증빙용)으로 증빙하실 수 있습니다.",
   },
   {
     q: "도입 후 문제가 생기면 지원을 받을 수 있나요?",
@@ -165,7 +165,7 @@ export default async function HomePage() {
           <div className="mt-10 flex flex-wrap gap-x-10 gap-y-2 text-xs text-muted sm:text-sm md:mt-14 md:gap-y-3">
             <span>이커머스 · 제조 · 물류 · 서비스업 현장 적용</span>
             <span className="hidden md:inline text-line">|</span>
-            <span>토스페이먼츠 안전 결제</span>
+            <span>포트원(PortOne) 안전 결제</span>
             <span className="hidden md:inline text-line">|</span>
             <span>도입 후 전담 운영 지원</span>
           </div>

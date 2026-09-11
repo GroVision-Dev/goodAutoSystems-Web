@@ -35,7 +35,7 @@
 
 ## 회원
 - 마이페이지 **월 결제** 섹션: 청구서 목록(월·항목·금액·상태·납부일), 미납 건 "결제하기"
-- `/checkout/invoice/[id]` — 기존 토스 위젯 컴포넌트 재사용. `POST /api/orders {invoiceId}`로 PENDING 주문 생성 후 `/checkout/success`에서 승인 → `Order.PAID` + `Invoice.PAID`.
+- `/checkout/invoice/[id]` — 기존 포트원 결제 컴포넌트(`PortOneCheckout`) 재사용. `POST /api/orders {invoiceId}`로 PENDING 주문 생성 후 `/checkout/success`에서 승인 → `Order.PAID` + `Invoice.PAID`.
 - 관리자가 결제 취소(환불)하면 `Invoice`는 `UNPAID`로 되돌린다.
 
 ## 검증

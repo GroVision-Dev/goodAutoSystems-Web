@@ -386,7 +386,7 @@ export default async function ProductDetailPage({
               <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">1</span>
-                  첫 달 이용료 결제 (토스페이먼츠)
+                  첫 달 이용료 결제 (포트원 안전 결제)
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">2</span>
@@ -405,7 +405,7 @@ export default async function ProductDetailPage({
               <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">1</span>
-                  토스페이먼츠로 안전하게 결제
+                  포트원(PortOne)으로 안전하게 결제
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">2</span>
@@ -420,7 +420,7 @@ export default async function ProductDetailPage({
               <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">1</span>
-                  토스페이먼츠로 안전하게 결제
+                  포트원(PortOne)으로 안전하게 결제
                 </li>
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">2</span>

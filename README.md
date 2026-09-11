@@ -1,7 +1,7 @@
 # Optix 웹사이트
 
 업무 자동화 프로그램·AI 자동화 솔루션 판매 사이트.
-회원가입(휴대폰 문자 인증)/로그인, 상품 판매, 토스페이먼츠 결제, 데스크톱 프로그램 인증 API, 어드민을 포함합니다.
+회원가입(휴대폰 문자 인증)/로그인, 상품 판매, 포트원(PortOne) V2 결제, 데스크톱 프로그램 인증 API, 어드민을 포함합니다.
 
 ## 기술 스택
 
@@ -10,7 +10,7 @@
 - Prisma 6 + PostgreSQL 16 (Docker)
 - Auth.js(next-auth v5) Credentials — 웹 세션
 - jose(JWT) — 데스크톱 프로그램 인증 API
-- 토스페이먼츠 결제위젯 v2 — 단건 결제
+- 포트원(PortOne) V2 브라우저 SDK — 단건 결제 (서버에서 결제 단건 조회로 검증)
 - SOLAPI — 회원가입 휴대폰 인증 문자 발송
 
 ## 로컬 개발 실행
@@ -29,7 +29,7 @@ npm run dev               # http://localhost:12000
 
 ```bash
 git clone <repo> && cd goodAutoSystems-Web
-cp .env.production.example .env   # 값 채우기 (DB 비밀번호, 시크릿, 토스 실키, 도메인)
+cp .env.production.example .env   # 값 채우기 (DB 비밀번호, 시크릿, 포트원 운영 키, 도메인)
 docker compose up --build -d
 ```
 
@@ -83,7 +83,7 @@ app/
   services/, about/         서비스·회사소개
   (auth)/login, register    로그인/회원가입
   mypage/                   내 정보·주문내역·프로그램 다운로드
-  checkout/[slug]           토스 결제위젯
+  checkout/[slug]           포트원 결제창 호출
   checkout/success, fail    결제 승인/실패 처리
   admin/                    관리자 (대시보드·회원·상품·주문)
   api/
@@ -117,4 +117,4 @@ private-files/              프로그램 설치 파일 (직접 URL 접근 불가
 
 - `public/videos/intro-placeholder.mp4` — 실제 회사/제품 소개 영상으로 교체
 - `private-files/goodauto-pro-setup.zip` — 실제 프로그램 설치 파일로 교체
-- `.env`의 토스 테스트 키 → 상점 실키
+- `.env`의 포트원 테스트 채널 키 → 운영 채널 키 (`NEXT_PUBLIC_PORTONE_*`는 재빌드 필요)
