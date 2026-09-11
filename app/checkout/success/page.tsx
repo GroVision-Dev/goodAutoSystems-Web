@@ -9,6 +9,7 @@ import {
   PortOneApiError,
 } from "@/lib/portone";
 import { invoiceOrderName } from "@/lib/billing";
+import { setupMonthlyBillingAfterPurchase } from "@/lib/monthly-purchase";
 
 export const metadata = { title: "결제 완료" };
 
@@ -95,6 +96,21 @@ export default async function CheckoutSuccessPage({
           ]
         : []),
     ]);
+
+    // 월 결제 상품: 첫 달 결제 완료 → 회원 월 결제 설정 + 이번 달 청구서(납부 완료) 연결.
+    // 결제 자체는 이미 확정됐으므로 여기서 실패해도 결제 완료로 처리하고 로그만 남긴다.
+    if (order.product?.billingType === "MONTHLY") {
+      try {
+        await setupMonthlyBillingAfterPurchase({
+          orderId,
+          userId: order.userId,
+          product: { name: order.product.name, price: order.product.price },
+          paidAt,
+        });
+      } catch (e) {
+        console.error("[checkout] 월 결제 설정 등록 실패", orderId, e);
+      }
+    }
   } catch (e) {
     failMessage =
       e instanceof PortOneApiError ? e.message : "결제 확인 중 오류가 발생했습니다.";

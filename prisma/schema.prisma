@@ -68,17 +68,28 @@ model User {
   invoices     Invoice[]
 }
 
+/// 결제 유형 — ONE_TIME: 1회 결제(영구 사용권 등) / MONTHLY: 월 단위 이용료(첫 달은 주문 결제, 이후 청구서)
+enum BillingType {
+  ONE_TIME
+  MONTHLY
+}
+
 model Product {
-  id           String   @id @default(cuid())
+  id           String      @id @default(cuid())
   name         String
-  slug         String   @unique
+  slug         String      @unique
   summary      String
   description  String
+  /// ONE_TIME이면 총액, MONTHLY면 1개월 이용료
   price        Int
   category     Category
+  billingType  BillingType @default(ONE_TIME)
+  /// 월 결제 상품의 계약 기간 범위(개월). 둘 다 비면 기간 제한 없음
+  minMonths    Int?
+  maxMonths    Int?
   downloadFile String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
   orders       Order[]
 }
 

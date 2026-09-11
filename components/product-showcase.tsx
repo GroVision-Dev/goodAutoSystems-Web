@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@prisma/client";
+import { billingNote, pricePrefix } from "@/lib/product-pricing";
 
 /** 상품별 강조 지표 (랜딩 쇼케이스용) */
 const HIGHLIGHTS: Record<string, string[]> = {
@@ -9,14 +10,14 @@ const HIGHLIGHTS: Record<string, string[]> = {
     "엑셀·CSV 데이터 연동",
   ],
   "ai-automation-starter": [
-    "업무 프로세스 진단 1회 포함",
+    "업무 프로세스 진단 포함",
     "문서 분류·요약 자동화 구축",
-    "1개월 운영 지원",
+    "월 단위 계약 · 운영 지원 포함",
   ],
   "ai-automation-enterprise": [
     "최대 5개 부서 맞춤 구축",
     "ERP·그룹웨어 연동",
-    "전담 매니저 · 3개월 운영 지원",
+    "전담 매니저 · 1~3개월 용역",
   ],
 };
 
@@ -61,10 +62,16 @@ export default function ProductShowcase({ products }: { products: Product[] }) {
             </ul>
           </div>
           <div className="flex flex-row items-center justify-between gap-4 border-t border-line pt-5 md:flex-col md:items-end md:border-0 md:pt-0">
-            <p className="text-2xl font-bold md:text-3xl">
-              {product.price.toLocaleString()}
-              <span className="ml-1 text-base font-normal text-muted">원</span>
-            </p>
+            <div className="md:text-right">
+              <p className="text-2xl font-bold md:text-3xl">
+                {pricePrefix(product) && (
+                  <span className="mr-1 text-base font-normal text-muted">월</span>
+                )}
+                {product.price.toLocaleString()}
+                <span className="ml-1 text-base font-normal text-muted">원</span>
+              </p>
+              <p className="mt-1 text-xs text-muted">{billingNote(product)}</p>
+            </div>
             <Link
               href={`/products/${product.slug}`}
               className="shrink-0 rounded-lg bg-accent px-5 py-3 text-sm font-medium text-white transition hover:bg-accent/80 md:px-6"

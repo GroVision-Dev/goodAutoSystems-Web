@@ -58,18 +58,24 @@ async function main() {
       name: "AI 업무 자동화 스타터",
       summary: "AI가 문서 처리·데이터 정리를 대신하는 소규모 팀용 자동화 패키지",
       description:
-        "AI 업무 자동화 스타터는 소규모 팀을 위한 AI 자동화 도입 패키지입니다.\n\n포함 내역\n- 업무 프로세스 분석 및 자동화 설계 (1회)\n- AI 문서 분류/요약 자동화 구축\n- 이메일·보고서 자동 작성 워크플로 구축\n- 1개월 운영 지원\n\n도입 후 반복 문서 업무 시간을 평균 70% 절감할 수 있습니다.",
+        "AI 업무 자동화 스타터는 소규모 팀을 위한 AI 자동화 도입 패키지입니다. 월 단위 용역으로 제공되며 이용료는 1개월 기준입니다.\n\n포함 내역\n- 업무 프로세스 분석 및 자동화 설계\n- AI 문서 분류/요약 자동화 구축\n- 이메일·보고서 자동 작성 워크플로 구축\n- 계약 기간 중 운영 지원\n\n첫 달 이용료를 결제하면 담당자가 연락드려 일정과 계약 기간을 협의하고, 다음 달부터는 매월 결제일에 청구서로 결제합니다.",
       price: 490000,
       category: "AI_SERVICE",
+      billingType: "MONTHLY",
+      minMonths: 1,
+      maxMonths: 2,
     },
     {
       slug: "ai-automation-enterprise",
       name: "AI 업무 자동화 엔터프라이즈",
       summary: "기업 맞춤형 AI 자동화 컨설팅 및 구축 서비스",
       description:
-        "AI 업무 자동화 엔터프라이즈는 기업 전체 업무 흐름을 분석하여 맞춤형 AI 자동화 시스템을 구축하는 서비스입니다.\n\n포함 내역\n- 전사 업무 프로세스 진단 및 자동화 로드맵 수립\n- 부서별 맞춤 AI 워크플로 구축 (최대 5개 부서)\n- 사내 시스템(ERP/그룹웨어) 연동\n- 전담 매니저 배정 및 3개월 운영 지원\n- 임직원 교육 2회\n\n도입 기업 평균 연간 1,200시간 이상의 업무 시간을 절감했습니다.",
+        "AI 업무 자동화 엔터프라이즈는 기업 전체 업무 흐름을 분석하여 맞춤형 AI 자동화 시스템을 구축하는 서비스입니다. 1~3개월 용역으로 제공되며 이용료는 1개월 기준입니다.\n\n포함 내역\n- 전사 업무 프로세스 진단 및 자동화 로드맵 수립\n- 부서별 맞춤 AI 워크플로 구축 (최대 5개 부서)\n- 사내 시스템(ERP/그룹웨어) 연동\n- 전담 매니저 배정 및 계약 기간 중 운영 지원\n- 임직원 교육 2회\n\n첫 달 이용료를 결제하면 담당 매니저가 연락드려 일정과 계약 기간을 협의하고, 다음 달부터는 매월 결제일에 청구서로 결제합니다.",
       price: 1900000,
       category: "AI_SERVICE",
+      billingType: "MONTHLY",
+      minMonths: 1,
+      maxMonths: 3,
     },
   ];
 
@@ -78,6 +84,21 @@ async function main() {
       where: { slug: product.slug },
       update: {},
       create: product,
+    });
+  }
+
+  // 1회 결제 → 월 결제 전환 (2026-09-11): 기존 DB의 AI 서비스 상품이 아직 ONE_TIME이면 1회만 월 결제로 바꾼다.
+  // 이후 관리자가 상품관리에서 바꾼 값은 건드리지 않는다.
+  for (const product of products) {
+    if (product.billingType !== "MONTHLY") continue;
+    await prisma.product.updateMany({
+      where: { slug: product.slug, billingType: "ONE_TIME" },
+      data: {
+        billingType: "MONTHLY",
+        minMonths: product.minMonths,
+        maxMonths: product.maxMonths,
+        description: product.description,
+      },
     });
   }
 

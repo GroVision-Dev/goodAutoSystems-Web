@@ -79,14 +79,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "상품을 찾을 수 없습니다." }, { status: 404 });
   }
 
-  const alreadyPaid = await prisma.order.findFirst({
-    where: { userId: session.user.id, productId: product.id, status: "PAID" },
-  });
-  if (alreadyPaid) {
-    return NextResponse.json(
-      { error: "이미 구매한 상품입니다." },
-      { status: 409 }
-    );
+  // 1회 결제 상품(영구 사용권)은 중복 구매를 막는다. 월 결제 상품은 첫 달 결제를 다시 시작할 수 있다.
+  if (product.billingType === "ONE_TIME") {
+    const alreadyPaid = await prisma.order.findFirst({
+      where: { userId: session.user.id, productId: product.id, status: "PAID" },
+    });
+    if (alreadyPaid) {
+      return NextResponse.json(
+        { error: "이미 구매한 상품입니다." },
+        { status: 409 }
+      );
+    }
   }
 
   const orderId = newOrderId();
@@ -104,7 +107,8 @@ export async function POST(request: Request) {
   return NextResponse.json({
     orderId,
     amount: product.price,
-    orderName: product.name,
+    orderName:
+      product.billingType === "MONTHLY" ? `${product.name} 첫 달 이용료` : product.name,
     customerName: session.user.name,
     customerPhone: customer.phone,
     customerEmail: customer.email ?? "",

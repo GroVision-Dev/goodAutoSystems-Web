@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { toggleProductActive, deleteProduct } from "@/app/optix-dev/actions";
 import AdminProductForm from "@/components/admin-product-form";
+import { contractRangeLabel, isMonthly } from "@/lib/product-pricing";
 
 export const metadata = { title: "상품관리" };
 
@@ -48,7 +49,22 @@ export default async function AdminProductsPage({
                   <span className="block font-mono text-xs text-muted">{product.slug}</span>
                 </td>
                 <td className="whitespace-nowrap p-4">{CATEGORY_LABEL[product.category]}</td>
-                <td className="whitespace-nowrap p-4">{product.price.toLocaleString()}원</td>
+                <td className="whitespace-nowrap p-4">
+                  {isMonthly(product) ? (
+                    <>
+                      <span className="mr-1 text-xs text-muted">월</span>
+                      {product.price.toLocaleString()}원
+                      <span className="block text-xs text-muted">
+                        월 결제{contractRangeLabel(product) ? ` · ${contractRangeLabel(product)} 계약` : ""}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {product.price.toLocaleString()}원
+                      <span className="block text-xs text-muted">1회 결제</span>
+                    </>
+                  )}
+                </td>
                 <td className="whitespace-nowrap p-4 text-muted">{product._count.orders}건</td>
                 <td className="whitespace-nowrap p-4">
                   {product.isActive ? (

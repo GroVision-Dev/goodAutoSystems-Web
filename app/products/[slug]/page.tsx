@@ -8,6 +8,7 @@ import {
 } from "@/lib/product-content";
 import ProductCard from "@/components/product-card";
 import { SITE_INFO, PROGRAM_VERSION, PRICE_NOTE } from "@/lib/site-config";
+import { billingNote, contractRangeLabel, isMonthly } from "@/lib/product-pricing";
 
 const CATEGORY_LABEL: Record<string, string> = {
   PROGRAM: "프로그램",
@@ -24,15 +25,19 @@ export default async function ProductDetailPage({
   if (!product || !product.isActive) notFound();
 
   const session = await auth();
-  const alreadyPurchased = session
-    ? (await prisma.order.count({
-        where: {
-          userId: session.user.id,
-          productId: product.id,
-          status: "PAID",
-        },
-      })) > 0
-    : false;
+  const monthly = isMonthly(product);
+  const contractRange = contractRangeLabel(product);
+  // 1회 결제 상품만 중복 구매를 막는다. 월 결제 상품은 첫 달 결제를 다시 시작할 수 있다.
+  const alreadyPurchased =
+    session && !monthly
+      ? (await prisma.order.count({
+          where: {
+            userId: session.user.id,
+            productId: product.id,
+            status: "PAID",
+          },
+        })) > 0
+      : false;
 
   const otherProducts = await prisma.product.findMany({
     where: { isActive: true, id: { not: product.id } },
@@ -336,17 +341,25 @@ export default async function ProductDetailPage({
         {/* 구매 사이드바 (스크롤 고정) */}
         <div className="lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl border border-line bg-surface p-6">
-            <p className="text-sm text-muted">판매가</p>
+            <p className="text-sm text-muted">{monthly ? "월 이용료 (1개월 기준)" : "판매가"}</p>
             <p className="mt-1 text-3xl font-bold">
+              {monthly && <span className="mr-1 text-base font-normal text-muted">월</span>}
               {product.price.toLocaleString()}
               <span className="ml-1 text-base font-normal text-muted">원</span>
             </p>
             <p className="mt-1 text-xs text-muted">
-              {PRICE_NOTE}
-              {product.category === "PROGRAM"
-                ? " · 1회 결제 · 영구 사용권"
-                : " · 1회 결제 · 현금영수증 발행 가능"}
+              {PRICE_NOTE} · {billingNote(product)}
             </p>
+            {monthly && (
+              <div className="mt-4 rounded-lg border border-accent-2/30 bg-accent-2/5 px-4 py-3 text-xs leading-relaxed text-muted">
+                <p className="font-medium text-foreground">월 단위 용역 계약</p>
+                <p className="mt-1">
+                  지금은 첫 달 이용료만 결제합니다. 계약 기간
+                  {contractRange ? `(${contractRange})` : ""}은 담당 매니저와 협의해 확정하고,
+                  다음 달부터는 매월 결제일에 청구서로 결제합니다.
+                </p>
+              </div>
+            )}
             {alreadyPurchased ? (
               <Link
                 href="/mypage"
@@ -359,7 +372,7 @@ export default async function ProductDetailPage({
                 href={checkoutHref}
                 className="mt-6 block rounded-lg bg-accent py-3 text-center font-medium text-white transition hover:bg-accent/80"
               >
-                구매하기
+                {monthly ? "첫 달 결제하고 시작하기" : "구매하기"}
               </Link>
             )}
             <a
@@ -369,7 +382,26 @@ export default async function ProductDetailPage({
               도입 전 문의하기
             </a>
 
-            {product.category === "PROGRAM" ? (
+            {monthly ? (
+              <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
+                <li className="flex gap-2">
+                  <span className="font-bold text-accent">1</span>
+                  첫 달 이용료 결제 (토스페이먼츠)
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-accent">2</span>
+                  담당 매니저가 영업일 1일 내 연락드려 일정·계약 기간 협의
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-accent">3</span>
+                  업무 진단 후 구축 착수
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold text-accent">4</span>
+                  다음 달부터 매월 결제일에 청구서 결제 (마이페이지)
+                </li>
+              </ol>
+            ) : product.category === "PROGRAM" ? (
               <ol className="mt-6 flex flex-col gap-3 border-t border-line pt-5 text-xs leading-relaxed text-muted">
                 <li className="flex gap-2">
                   <span className="font-bold text-accent">1</span>
@@ -438,7 +470,7 @@ export default async function ProductDetailPage({
               href={checkoutHref}
               className="rounded-lg bg-accent px-8 py-3 font-medium text-white transition hover:bg-accent/80"
             >
-              {product.name} 구매하기
+              {product.name} {monthly ? "시작하기" : "구매하기"}
             </Link>
           )}
           <a
@@ -454,8 +486,12 @@ export default async function ProductDetailPage({
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-background/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="min-w-0">
-            <p className="truncate text-xs text-muted">{product.name}</p>
+            <p className="truncate text-xs text-muted">
+              {product.name}
+              {monthly && contractRange ? ` · ${contractRange} 계약` : ""}
+            </p>
             <p className="text-lg font-bold">
+              {monthly && <span className="mr-1 text-sm font-normal text-muted">월</span>}
               {product.price.toLocaleString()}
               <span className="ml-1 text-sm font-normal text-muted">원</span>
             </p>
@@ -472,7 +508,7 @@ export default async function ProductDetailPage({
               href={checkoutHref}
               className="shrink-0 rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition hover:bg-accent/80"
             >
-              구매하기
+              {monthly ? "첫 달 결제" : "구매하기"}
             </Link>
           )}
         </div>

@@ -110,18 +110,30 @@ export async function deleteProduct(productId: string) {
   revalidatePath("/");
 }
 
-const productSchema = z.object({
-  name: z.string().min(1, "상품명을 입력하세요."),
-  slug: z
-    .string()
-    .min(1, "슬러그를 입력하세요.")
-    .regex(/^[a-z0-9-]+$/, "슬러그는 영문 소문자·숫자·하이픈만 사용할 수 있습니다."),
-  summary: z.string().min(1, "요약을 입력하세요."),
-  description: z.string().min(1, "상세 설명을 입력하세요."),
-  price: z.coerce.number().int().min(100, "가격은 100원 이상이어야 합니다."),
-  category: z.enum(["PROGRAM", "AI_SERVICE"]),
-  downloadFile: z.string().optional(),
-});
+const monthsSchema = z
+  .union([z.literal(""), z.coerce.number().int().min(1, "계약 개월은 1 이상").max(36, "계약 개월은 36 이하")])
+  .transform((v) => (v === "" ? null : v));
+
+const productSchema = z
+  .object({
+    name: z.string().min(1, "상품명을 입력하세요."),
+    slug: z
+      .string()
+      .min(1, "슬러그를 입력하세요.")
+      .regex(/^[a-z0-9-]+$/, "슬러그는 영문 소문자·숫자·하이픈만 사용할 수 있습니다."),
+    summary: z.string().min(1, "요약을 입력하세요."),
+    description: z.string().min(1, "상세 설명을 입력하세요."),
+    price: z.coerce.number().int().min(100, "가격은 100원 이상이어야 합니다."),
+    category: z.enum(["PROGRAM", "AI_SERVICE"]),
+    billingType: z.enum(["ONE_TIME", "MONTHLY"]).default("ONE_TIME"),
+    minMonths: monthsSchema.default(null),
+    maxMonths: monthsSchema.default(null),
+    downloadFile: z.string().optional(),
+  })
+  .refine(
+    (v) => v.minMonths === null || v.maxMonths === null || v.minMonths <= v.maxMonths,
+    { message: "최소 계약 개월은 최대 계약 개월보다 클 수 없습니다.", path: ["minMonths"] }
+  );
 
 export interface ProductFormState {
   error?: string;
@@ -141,6 +153,9 @@ export async function saveProduct(
     description: formData.get("description"),
     price: formData.get("price"),
     category: formData.get("category"),
+    billingType: formData.get("billingType") ?? "ONE_TIME",
+    minMonths: (formData.get("minMonths") as string | null)?.trim() ?? "",
+    maxMonths: (formData.get("maxMonths") as string | null)?.trim() ?? "",
     downloadFile: (formData.get("downloadFile") as string) || undefined,
   });
   if (!parsed.success) {
@@ -148,8 +163,12 @@ export async function saveProduct(
   }
 
   const id = (formData.get("id") as string) || null;
+  const monthly = parsed.data.billingType === "MONTHLY";
   const data = {
     ...parsed.data,
+    // 1회 결제 상품에는 계약 기간이 없다
+    minMonths: monthly ? parsed.data.minMonths : null,
+    maxMonths: monthly ? parsed.data.maxMonths : null,
     downloadFile: parsed.data.downloadFile || null,
   };
 

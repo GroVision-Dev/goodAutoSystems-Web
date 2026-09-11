@@ -6,6 +6,7 @@ import Link from "next/link";
 import PortOneCheckout from "@/components/portone-checkout";
 import { PRODUCT_CONTENT } from "@/lib/product-content";
 import { PRICE_NOTE, RECEIPT_NOTE } from "@/lib/site-config";
+import { contractRangeLabel, isMonthly } from "@/lib/product-pricing";
 
 export const metadata: Metadata = { title: "결제하기" };
 
@@ -21,10 +22,16 @@ export default async function CheckoutPage({
   const product = await prisma.product.findUnique({ where: { slug } });
   if (!product || !product.isActive) notFound();
 
-  const alreadyPaid = await prisma.order.findFirst({
-    where: { userId: session.user.id, productId: product.id, status: "PAID" },
-  });
-  if (alreadyPaid) redirect("/mypage");
+  const monthly = isMonthly(product);
+  const contractRange = contractRangeLabel(product);
+
+  // 1회 결제 상품(영구 사용권)만 중복 결제를 막는다
+  if (!monthly) {
+    const alreadyPaid = await prisma.order.findFirst({
+      where: { userId: session.user.id, productId: product.id, status: "PAID" },
+    });
+    if (alreadyPaid) redirect("/mypage");
+  }
 
   const refundPolicy =
     PRODUCT_CONTENT[product.slug]?.notice.find((row) =>
@@ -32,20 +39,27 @@ export default async function CheckoutPage({
     )?.value ??
     (product.category === "PROGRAM"
       ? "다운로드 또는 프로그램 로그인 이전, 결제일로부터 7일 이내 전액 환불. 이후에는 청약철회 제한"
-      : "업무 진단 착수 전 전액 환불. 착수 후에는 진행 단계에 따라 잔여 금액 환불");
+      : "해당 월 업무 착수 전 전액 환불. 착수 후에는 진행 단계에 따라 잔여 금액 환불");
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 md:py-16">
-      <h1 className="text-2xl font-bold">결제하기</h1>
+      <h1 className="text-2xl font-bold">{monthly ? "첫 달 이용료 결제" : "결제하기"}</h1>
 
       <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:mt-8 md:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <p className="font-bold">{product.name}</p>
             <p className="mt-1 text-sm text-muted">{product.summary}</p>
+            {monthly && (
+              <p className="mt-2 text-xs text-accent-2">
+                월 단위 용역{contractRange ? ` · 계약 기간 ${contractRange}` : ""} · 이번 결제는 첫 달
+                이용료입니다
+              </p>
+            )}
           </div>
           <div className="shrink-0 border-t border-line pt-3 sm:border-0 sm:pt-0 sm:text-right">
             <p className="text-xl font-bold">
+              {monthly && <span className="mr-1 text-sm font-normal text-muted">월</span>}
               {product.price.toLocaleString()}
               <span className="ml-1 text-sm font-normal text-muted">원</span>
             </p>
@@ -66,6 +80,17 @@ export default async function CheckoutPage({
                 : "결제 후 영업일 1일 내 담당자 연락 · 일정 협의 후 착수"}
             </dd>
           </div>
+          {monthly && (
+            <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
+              <dt className="w-24 shrink-0 text-xs text-muted/80 sm:text-sm sm:text-muted">결제 방식</dt>
+              <dd>
+                첫 달 이용료는 지금 결제합니다. 다음 달부터는 매월 결제일(오늘 날짜 기준)에
+                발행되는 청구서를 마이페이지에서 결제하며, 계약 기간
+                {contractRange ? `(${contractRange})` : ""}은 담당자와 협의해 확정합니다. 계약 종료
+                후에는 청구되지 않습니다.
+              </dd>
+            </div>
+          )}
           <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-3">
             <dt className="w-24 shrink-0 text-xs text-muted/80 sm:text-sm sm:text-muted">청약철회·환불</dt>
             <dd>{refundPolicy}</dd>
