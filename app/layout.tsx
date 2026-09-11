@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   },
   description:
     "업무 자동화 프로그램과 AI 자동화 솔루션을 제공하는 Optix입니다.",
+  // 검색엔진 사이트 소유 확인 — <head>에 meta 태그로 출력된다
+  verification: {
+    other: {
+      "naver-site-verification": "b82e0f7c4da3a7b9ed5eb3d17236913c1039e77a",
+    },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
