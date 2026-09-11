@@ -8,6 +8,8 @@ import NavLink from "@/components/nav-link";
 interface NavItem {
   href: string;
   label: string;
+  /** 하위 항목 (예: 상품소개 아래 개별 상품). 들여쓰기해 표시한다 */
+  children?: { href: string; label: string }[];
 }
 
 /**
@@ -101,16 +103,33 @@ export default function MobileMenu({
           >
             <nav aria-label="모바일 메뉴" className="mx-auto flex max-w-6xl flex-col px-4 py-3">
               {items.map((item) => (
-                <NavLink
-                  key={item.href}
-                  href={item.href}
-                  onClick={close}
-                  className={linkClass}
-                  activeClassName={activeClass}
-                  inactiveClassName={inactiveClass}
-                >
-                  {item.label}
-                </NavLink>
+                <div key={item.href}>
+                  <NavLink
+                    href={item.href}
+                    onClick={close}
+                    className={linkClass}
+                    activeClassName={activeClass}
+                    inactiveClassName={inactiveClass}
+                  >
+                    {item.label}
+                  </NavLink>
+                  {item.children && item.children.length > 0 && (
+                    <div className="mb-1 ml-3 flex flex-col border-l border-line pl-2">
+                      {item.children.map((child) => (
+                        <NavLink
+                          key={child.href}
+                          href={child.href}
+                          onClick={close}
+                          className="block rounded-lg px-3 py-2 text-sm transition"
+                          activeClassName="bg-accent/15 font-medium text-accent"
+                          inactiveClassName="text-muted hover:bg-surface hover:text-foreground"
+                        >
+                          {child.label}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
               {isAdmin && (
                 <NavLink

@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { priceLabel } from "@/lib/product-pricing";
 import MobileMenu from "@/components/mobile-menu";
 import NavLink from "@/components/nav-link";
+import ProductsMenu, { type ProductMenuItem } from "@/components/products-menu";
 
 const NAV_ITEMS = [
   { href: "/products", label: "상품소개" },
@@ -10,6 +13,11 @@ const NAV_ITEMS = [
   { href: "/about", label: "회사소개" },
   { href: "/#contact", label: "도입문의" },
 ];
+
+const NAV_LINK_CLASS =
+  "relative flex h-16 items-center transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent after:transition-opacity";
+const NAV_ACTIVE_CLASS = "font-medium text-foreground after:opacity-100";
+const NAV_INACTIVE_CLASS = "text-muted hover:text-foreground after:opacity-0";
 
 /** 로그아웃 폼 (데스크톱 헤더와 모바일 메뉴에서 공용) */
 function SignOutForm({ className }: { className: string }) {
@@ -28,10 +36,50 @@ function SignOutForm({ className }: { className: string }) {
   );
 }
 
+/** 헤더 드롭다운·모바일 메뉴용 노출 상품 목록 (DB 장애 시 빈 목록으로 폴백) */
+async function loadMenuProducts(): Promise<ProductMenuItem[]> {
+  try {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      orderBy: [{ category: "asc" }, { price: "asc" }],
+      select: {
+        slug: true,
+        name: true,
+        summary: true,
+        category: true,
+        price: true,
+        billingType: true,
+      },
+    });
+    return products.map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      summary: p.summary,
+      category: p.category,
+      priceLabel: priceLabel(p),
+    }));
+  } catch (e) {
+    console.error("[header] 상품 메뉴 조회 실패", e);
+    return [];
+  }
+}
+
 export default async function SiteHeader() {
-  const session = await auth();
+  const [session, menuProducts] = await Promise.all([auth(), loadMenuProducts()]);
   const isLoggedIn = Boolean(session);
   const isAdmin = session?.user.role === "ADMIN";
+
+  const mobileItems = NAV_ITEMS.map((item) =>
+    item.href === "/products"
+      ? {
+          ...item,
+          children: menuProducts.map((p) => ({
+            href: `/products/${p.slug}`,
+            label: p.name,
+          })),
+        }
+      : item
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-background/80 backdrop-blur">
@@ -48,17 +96,27 @@ export default async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 text-sm md:flex">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.href}
-              href={item.href}
-              className="relative flex h-16 items-center transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent after:transition-opacity"
-              activeClassName="font-medium text-foreground after:opacity-100"
-              inactiveClassName="text-muted hover:text-foreground after:opacity-0"
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map((item) =>
+            item.href === "/products" ? (
+              <ProductsMenu
+                key={item.href}
+                products={menuProducts}
+                className={NAV_LINK_CLASS}
+                activeClassName={NAV_ACTIVE_CLASS}
+                inactiveClassName={NAV_INACTIVE_CLASS}
+              />
+            ) : (
+              <NavLink
+                key={item.href}
+                href={item.href}
+                className={NAV_LINK_CLASS}
+                activeClassName={NAV_ACTIVE_CLASS}
+                inactiveClassName={NAV_INACTIVE_CLASS}
+              >
+                {item.label}
+              </NavLink>
+            )
+          )}
           {isAdmin && (
             <NavLink
               href="/optix-dev"
@@ -107,7 +165,7 @@ export default async function SiteHeader() {
 
         {/* 모바일 햄버거 메뉴 */}
         <MobileMenu
-          items={NAV_ITEMS}
+          items={mobileItems}
           isLoggedIn={isLoggedIn}
           isAdmin={isAdmin}
           signOutForm={
