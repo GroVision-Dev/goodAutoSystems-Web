@@ -16,7 +16,7 @@ export default function FloatingContact() {
 
   return (
     <Link
-      href="/#contact"
+      href="/contact"
       className={`fixed bottom-4 right-4 z-40 items-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-accent/30 transition hover:bg-accent/80 md:bottom-6 md:right-6 md:px-5 md:py-3 ${
         onProductDetail ? "hidden lg:flex" : "flex"
       }`}
