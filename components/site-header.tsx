@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import MobileMenu from "@/components/mobile-menu";
+import NavLink from "@/components/nav-link";
 
 const NAV_ITEMS = [
   { href: "/products", label: "상품소개" },
@@ -46,20 +47,27 @@ export default async function SiteHeader() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-8 text-sm text-muted md:flex">
+        <nav className="hidden items-center gap-8 text-sm md:flex">
           {NAV_ITEMS.map((item) => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
-              className="transition hover:text-foreground"
+              className="relative flex h-16 items-center transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent after:transition-opacity"
+              activeClassName="font-medium text-foreground after:opacity-100"
+              inactiveClassName="text-muted hover:text-foreground after:opacity-0"
             >
               {item.label}
-            </Link>
+            </NavLink>
           ))}
           {isAdmin && (
-            <Link href="/optix-dev" className="text-accent-2 transition hover:text-foreground">
+            <NavLink
+              href="/optix-dev"
+              className="relative flex h-16 items-center transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent-2 after:transition-opacity"
+              activeClassName="font-medium text-accent-2 after:opacity-100"
+              inactiveClassName="text-accent-2/80 hover:text-accent-2 after:opacity-0"
+            >
               관리자
-            </Link>
+            </NavLink>
           )}
         </nav>
 
@@ -67,22 +75,26 @@ export default async function SiteHeader() {
         <div className="hidden items-center gap-3 text-sm md:flex">
           {isLoggedIn ? (
             <>
-              <Link
+              <NavLink
                 href="/mypage"
-                className="rounded-lg px-3 py-2 text-muted transition hover:text-foreground"
+                className="rounded-lg px-3 py-2 transition"
+                activeClassName="bg-surface font-medium text-foreground"
+                inactiveClassName="text-muted hover:text-foreground"
               >
                 마이페이지
-              </Link>
+              </NavLink>
               <SignOutForm className="rounded-lg border border-line px-4 py-2 text-muted transition hover:text-foreground" />
             </>
           ) : (
             <>
-              <Link
+              <NavLink
                 href="/login"
-                className="rounded-lg px-3 py-2 text-muted transition hover:text-foreground"
+                className="rounded-lg px-3 py-2 transition"
+                activeClassName="bg-surface font-medium text-foreground"
+                inactiveClassName="text-muted hover:text-foreground"
               >
                 로그인
-              </Link>
+              </NavLink>
               <Link
                 href="/register"
                 className="rounded-lg bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent/80"

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NavLink from "@/components/nav-link";
 
 interface NavItem {
   href: string;
@@ -47,8 +48,9 @@ export default function MobileMenu({
   }, [open]);
 
   const close = () => setOpen(false);
-  const linkClass =
-    "block rounded-lg px-3 py-3 text-base text-foreground transition hover:bg-surface";
+  const linkClass = "block rounded-lg px-3 py-3 text-base transition";
+  const activeClass = "bg-accent/15 font-medium text-accent";
+  const inactiveClass = "text-foreground hover:bg-surface";
 
   return (
     <div className="md:hidden">
@@ -99,37 +101,54 @@ export default function MobileMenu({
           >
             <nav aria-label="모바일 메뉴" className="mx-auto flex max-w-6xl flex-col px-4 py-3">
               {items.map((item) => (
-                <Link key={item.href} href={item.href} onClick={close} className={linkClass}>
+                <NavLink
+                  key={item.href}
+                  href={item.href}
+                  onClick={close}
+                  className={linkClass}
+                  activeClassName={activeClass}
+                  inactiveClassName={inactiveClass}
+                >
                   {item.label}
-                </Link>
+                </NavLink>
               ))}
               {isAdmin && (
-                <Link href="/optix-dev" onClick={close} className={`${linkClass} text-accent-2`}>
+                <NavLink
+                  href="/optix-dev"
+                  onClick={close}
+                  className={linkClass}
+                  activeClassName="bg-accent-2/15 font-medium text-accent-2"
+                  inactiveClassName="text-accent-2 hover:bg-surface"
+                >
                   관리자
-                </Link>
+                </NavLink>
               )}
 
               <div className="mt-3 flex gap-3 border-t border-line pt-4 pb-1 text-sm">
                 {isLoggedIn ? (
                   <>
-                    <Link
+                    <NavLink
                       href="/mypage"
                       onClick={close}
-                      className="flex-1 rounded-lg border border-line py-3 text-center font-medium transition hover:border-accent/60"
+                      className="flex-1 rounded-lg border py-3 text-center font-medium transition"
+                      activeClassName="border-accent bg-accent/15 text-accent"
+                      inactiveClassName="border-line hover:border-accent/60"
                     >
                       마이페이지
-                    </Link>
+                    </NavLink>
                     <div className="flex-1">{signOutForm}</div>
                   </>
                 ) : (
                   <>
-                    <Link
+                    <NavLink
                       href="/login"
                       onClick={close}
-                      className="flex-1 rounded-lg border border-line py-3 text-center font-medium transition hover:border-accent/60"
+                      className="flex-1 rounded-lg border py-3 text-center font-medium transition"
+                      activeClassName="border-accent bg-accent/15 text-accent"
+                      inactiveClassName="border-line hover:border-accent/60"
                     >
                       로그인
-                    </Link>
+                    </NavLink>
                     <Link
                       href="/register"
                       onClick={close}
