@@ -1,6 +1,13 @@
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { checkRateLimit, resetRateLimits, getClientIp } from "./rate-limit";
+import {
+  checkRateLimit,
+  clearRateLimit,
+  getClientIp,
+  isRateLimited,
+  recordHit,
+  resetRateLimits,
+} from "./rate-limit";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -37,19 +44,46 @@ describe("checkRateLimit", () => {
   });
 });
 
+describe("isRateLimited / recordHit", () => {
+  test("기록만 쌓고, 한도에 도달하면 limited", () => {
+    assert.equal(isRateLimited("fail:a", 2, HOUR, 0).limited, false);
+    recordHit("fail:a", 0);
+    assert.equal(isRateLimited("fail:a", 2, HOUR, 10).limited, false);
+    recordHit("fail:a", 20);
+    const result = isRateLimited("fail:a", 2, HOUR, 30);
+    assert.equal(result.limited, true);
+    assert.equal(result.retryAfterSeconds, 3600);
+  });
+
+  test("판정만으로는 기록이 늘지 않는다", () => {
+    for (let i = 0; i < 10; i++) isRateLimited("fail:b", 1, HOUR, i);
+    assert.equal(isRateLimited("fail:b", 1, HOUR, 20).limited, false);
+  });
+
+  test("clearRateLimit으로 초기화", () => {
+    recordHit("fail:c", 0);
+    clearRateLimit("fail:c");
+    assert.equal(isRateLimited("fail:c", 1, HOUR, 10).limited, false);
+  });
+});
+
 describe("getClientIp", () => {
-  test("x-forwarded-for 첫 값을 쓴다", () => {
+  test("x-real-ip를 우선한다 (프록시가 덮어쓰는 값)", () => {
+    const req = new Request("http://x", {
+      headers: { "x-real-ip": "5.6.7.8", "x-forwarded-for": "1.2.3.4, 5.6.7.8" },
+    });
+    assert.equal(getClientIp(req), "5.6.7.8");
+  });
+
+  test("x-real-ip가 없으면 x-forwarded-for의 마지막 값 (첫 값은 위조 가능)", () => {
     const req = new Request("http://x", {
       headers: { "x-forwarded-for": "1.2.3.4, 10.0.0.1" },
     });
-    assert.equal(getClientIp(req), "1.2.3.4");
+    assert.equal(getClientIp(req), "10.0.0.1");
   });
 
-  test("없으면 x-real-ip, 그것도 없으면 unknown", () => {
-    assert.equal(
-      getClientIp(new Request("http://x", { headers: { "x-real-ip": "5.6.7.8" } })),
-      "5.6.7.8"
-    );
+  test("헤더 객체도 받는다, 아무것도 없으면 unknown", () => {
+    assert.equal(getClientIp(new Headers({ "x-real-ip": "9.9.9.9" })), "9.9.9.9");
     assert.equal(getClientIp(new Request("http://x")), "unknown");
   });
 });

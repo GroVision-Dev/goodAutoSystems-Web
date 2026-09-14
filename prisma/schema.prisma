@@ -34,6 +34,8 @@ enum OrderStatus {
   PAID
   FAILED
   CANCELED
+  /// 결제창을 열었지만 제한 시간 안에 결제하지 않아 자동 만료된 주문
+  EXPIRED
 }
 
 /// 회원가입 휴대폰 문자 인증 — phone은 숫자만(01012345678)
@@ -64,8 +66,67 @@ model User {
   monthlyTitle  String?
   /// 회원별 결제일 (매월 N일, 1~31). 해당 월에 그 날짜가 없으면 말일로 본다
   billingDay    Int?
+  /// 연속 로그인 실패 횟수 (성공하면 0으로 초기화)
+  failedLoginCount Int       @default(0)
+  /// 로그인 잠금 해제 시각. 연속 실패가 한도를 넘으면 설정된다
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  /// 프로그램 JWT 무효화 버전 — 비밀번호 변경·정지·탈퇴 시 1 증가
+  tokenVersion     Int       @default(0)
+  /// 회원가입 시 이용약관·개인정보 수집 동의 시각 (도입 전 가입 회원은 null)
+  termsAgreedAt    DateTime?
+  privacyAgreedAt  DateTime?
   orders       Order[]
   invoices     Invoice[]
+  sessions     UserSession[]
+}
+
+/// 웹 로그인 세션 — JWT에는 id만 담고, 매 요청마다 여기서 유효성(폐기·만료)을 확인한다
+model UserSession {
+  id           String    @id @default(cuid())
+  userId       String
+  /// 관리자 2단계 인증(문자)을 거쳐 만든 세션인지
+  mfa          Boolean   @default(false)
+  /// 로그인 당시 비밀번호가 현재 정책에 미달했는지 (관리자는 변경 전까지 관리자 기능 차단)
+  weakPassword Boolean   @default(false)
+  ip           String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// 관리자 로그인 문자 인증번호 (회원당 1건, 코드는 HMAC 해시로 저장)
+model LoginOtp {
+  userId    String   @id
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+/// 보안·개인정보 접속기록 — 로그인, 관리자 열람·변경, 결제 검증 이벤트. 앱에서는 추가만 하고 수정·삭제하지 않는다
+model AuditLog {
+  id            String   @id @default(cuid())
+  /// 행위자 회원 (로그인 실패 등 비회원 이벤트는 null)
+  actorId       String?
+  actorUsername String?
+  action        String
+  targetType    String?
+  targetId      String?
+  /// 검색어·변경 내용 등 부가 정보 (비밀번호·인증번호는 절대 넣지 않는다)
+  detail        Json?
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
 }
 
 /// 결제 유형 — ONE_TIME: 1회 결제(영구 사용권 등) / MONTHLY: 월 단위 이용료(첫 달은 주문 결제, 이후 청구서)
@@ -179,4 +240,6 @@ model Order {
   user       User        @relation(fields: [userId], references: [id])
   product    Product?    @relation(fields: [productId], references: [id])
   invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
+
+  @@index([status, createdAt])
 }

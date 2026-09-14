@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireAdminPage } from "@/lib/auth-guard";
+import { logAdminView } from "@/lib/audit";
 import {
   MAX_RANGE_DAYS,
   addDays,
@@ -77,7 +79,9 @@ export default async function AdminAnalyticsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const session = await requireAdminPage();
   const params = await searchParams;
+  await logAdminView(session, "ADMIN_VIEW_ANALYTICS", { from: params.from, to: params.to, date: params.date });
   const today = todayKst();
 
   // 조회 기간 결정 (기본 최근 7일, 최대 90일)

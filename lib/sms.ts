@@ -101,6 +101,23 @@ export async function sendInvoiceSms(phone: string, text: string): Promise<boole
   return true;
 }
 
+/**
+ * 이미 가입된 번호로 인증번호를 요청한 경우의 안내 문자.
+ * 화면 응답은 미가입 번호와 똑같이 하고(계정 열거 방지), 실제 번호 주인에게만 알린다.
+ */
+export function registeredPhoneSmsText() {
+  return "[Optix] 이미 가입된 번호입니다. 계정 문의는 고객센터로 연락주세요.";
+}
+
+export async function sendRegisteredPhoneNotice(phone: string) {
+  const config = getSmsConfig();
+  if (!config) {
+    console.log(`[sms] SOLAPI 미설정 — 개발 모드. ${phone} 이미 가입된 번호 안내 문자`);
+    return;
+  }
+  await sendSms(phone, registeredPhoneSmsText(), config);
+}
+
 export async function sendVerificationSms(phone: string, code: string) {
   const config = getSmsConfig();
   if (!config) {

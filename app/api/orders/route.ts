@@ -1,19 +1,30 @@
+import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { invoiceOrderName } from "@/lib/billing";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { expireStalePendingOrders } from "@/lib/order-expiry";
 
 const createOrderSchema = z.union([
-  z.object({ slug: z.string().min(1) }),
-  z.object({ invoiceId: z.string().min(1) }),
+  z.object({ slug: z.string().min(1).max(100), dryRun: z.boolean().optional() }),
+  z.object({ invoiceId: z.string().min(1).max(100), dryRun: z.boolean().optional() }),
 ]);
 
+/** 회원당 주문 생성 한도 (결제창 반복 열기로 주문이 쌓이는 것 방지) */
+const ORDER_LIMIT = 10;
+const ORDER_WINDOW_MS = 10 * 60 * 1000;
+
+/** 추측 불가능한 주문번호 (포트원 paymentId로도 사용) */
 function newOrderId() {
-  return `GAS-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return `GAS-${Date.now()}-${randomBytes(6).toString("hex")}`;
 }
 
-/** 결제 시작 전 PENDING 주문 생성. 금액은 서버의 상품 가격으로 확정한다. */
+/**
+ * 결제 시작 시 PENDING 주문 생성. 금액은 서버의 상품 가격·청구서 금액으로 확정한다.
+ * dryRun이면 주문을 만들지 않고 결제 가능 여부(이메일 등록 등)만 확인한다 — 결제 화면 진입 시 사용.
+ */
 export async function POST(request: Request) {
   const session = await auth();
   if (!session) {
@@ -36,8 +47,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
   }
 
-  // 월 청구서 결제
+  let target: { productId?: string; invoiceId?: string; amount: number; orderName: string };
+
   if ("invoiceId" in parsed.data) {
+    // 월 청구서 결제
     const invoice = await prisma.invoice.findUnique({
       where: { id: parsed.data.invoiceId },
     });
@@ -50,67 +63,75 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
-
-    const orderId = newOrderId();
-    const orderName = invoiceOrderName(invoice.title, invoice.billingMonth);
-    await prisma.order.create({
-      data: {
-        userId: session.user.id,
-        invoiceId: invoice.id,
-        orderId,
-        amount: invoice.amount,
-        status: "PENDING",
-      },
-    });
-    return NextResponse.json({
-      orderId,
+    target = {
+      invoiceId: invoice.id,
       amount: invoice.amount,
-      orderName,
-      customerName: session.user.name,
-      customerPhone: customer.phone,
-      customerEmail: customer.email ?? "",
+      orderName: invoiceOrderName(invoice.title, invoice.billingMonth),
+    };
+  } else {
+    const product = await prisma.product.findUnique({
+      where: { slug: parsed.data.slug },
     });
-  }
-
-  const product = await prisma.product.findUnique({
-    where: { slug: parsed.data.slug },
-  });
-  if (!product || !product.isActive) {
-    return NextResponse.json({ error: "상품을 찾을 수 없습니다." }, { status: 404 });
-  }
-
-  // 1회 결제 상품(영구 사용권)은 중복 구매를 막는다. 월 결제 상품은 첫 달 결제를 다시 시작할 수 있다.
-  if (product.billingType === "ONE_TIME") {
-    const alreadyPaid = await prisma.order.findFirst({
-      where: { userId: session.user.id, productId: product.id, status: "PAID" },
-    });
-    if (alreadyPaid) {
-      return NextResponse.json(
-        { error: "이미 구매한 상품입니다." },
-        { status: 409 }
-      );
+    if (!product || !product.isActive) {
+      return NextResponse.json({ error: "상품을 찾을 수 없습니다." }, { status: 404 });
     }
+
+    // 1회 결제 상품(영구 사용권)은 중복 구매를 막는다. 월 결제 상품은 첫 달 결제를 다시 시작할 수 있다.
+    if (product.billingType === "ONE_TIME") {
+      const alreadyPaid = await prisma.order.findFirst({
+        where: { userId: session.user.id, productId: product.id, status: "PAID" },
+        select: { id: true },
+      });
+      if (alreadyPaid) {
+        return NextResponse.json({ error: "이미 구매한 상품입니다." }, { status: 409 });
+      }
+    }
+    target = {
+      productId: product.id,
+      amount: product.price,
+      orderName: product.billingType === "MONTHLY" ? `${product.name} 첫 달 이용료` : product.name,
+    };
   }
+
+  if (parsed.data.dryRun) {
+    return NextResponse.json({ ready: true, hasEmail: Boolean(customer.email) });
+  }
+
+  if (!customer.email) {
+    return NextResponse.json(
+      { error: "결제사 요건상 구매자 이메일이 필요합니다.", code: "EMAIL_REQUIRED" },
+      { status: 400 }
+    );
+  }
+
+  const limit = checkRateLimit(`order:${session.user.id}`, ORDER_LIMIT, ORDER_WINDOW_MS);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "결제 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요." },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+    );
+  }
+
+  await expireStalePendingOrders().catch((e) => console.error("[orders] 만료 주문 정리 실패", e));
 
   const orderId = newOrderId();
-
   await prisma.order.create({
     data: {
       userId: session.user.id,
-      productId: product.id,
+      productId: target.productId,
+      invoiceId: target.invoiceId,
       orderId,
-      amount: product.price,
+      amount: target.amount,
       status: "PENDING",
     },
   });
 
   return NextResponse.json({
     orderId,
-    amount: product.price,
-    orderName:
-      product.billingType === "MONTHLY" ? `${product.name} 첫 달 이용료` : product.name,
+    amount: target.amount,
+    orderName: target.orderName,
     customerName: session.user.name,
     customerPhone: customer.phone,
-    customerEmail: customer.email ?? "",
+    customerEmail: customer.email,
   });
 }

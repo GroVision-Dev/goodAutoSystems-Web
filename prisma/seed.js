@@ -8,14 +8,38 @@ const prisma = new PrismaClient();
 // 관리자 아이디. 추측하기 쉬운 "admin"은 사용하지 않는다.
 const ADMIN_USERNAME = "optixdev1234";
 const LEGACY_ADMIN_USERNAME = "admin";
+const BCRYPT_COST = 12;
+
+/**
+ * SEED_ADMIN_PASSWORD: 관리자 계정을 처음 만들 때(또는 legacy admin 전환 시)만 사용. 기본값 없음.
+ * SEED_ADMIN_PHONE: 관리자 로그인 2단계 인증 문자를 받을 번호. 설정하면 매 배포 시 관리자 번호를 이 값으로 맞춘다.
+ */
+const adminPasswordInput = process.env.SEED_ADMIN_PASSWORD || "";
+const adminPhoneInput = (process.env.SEED_ADMIN_PHONE || "").replace(/\D/g, "");
+
+async function syncAdminPhone() {
+  if (!adminPhoneInput) return;
+  if (!/^010\d{8}$/.test(adminPhoneInput)) {
+    console.warn("SEED_ADMIN_PHONE 형식이 올바르지 않아 건너뜁니다. (010으로 시작하는 11자리)");
+    return;
+  }
+  const admin = await prisma.user.findUnique({ where: { username: ADMIN_USERNAME } });
+  if (!admin || admin.phone === adminPhoneInput) return;
+  const owner = await prisma.user.findUnique({ where: { phone: adminPhoneInput } });
+  if (owner && owner.id !== admin.id) {
+    console.warn("SEED_ADMIN_PHONE 번호가 다른 회원 계정에 등록되어 있어 관리자 번호를 바꾸지 않았습니다.");
+    return;
+  }
+  await prisma.user.update({ where: { id: admin.id }, data: { phone: adminPhoneInput } });
+  console.log("관리자 2단계 인증 휴대폰 번호를 SEED_ADMIN_PHONE 값으로 갱신했습니다.");
+}
 
 async function main() {
-  const adminPassword = await bcrypt.hash(
-    process.env.SEED_ADMIN_PASSWORD || "optixdev1234",
-    10
-  );
+  const adminPassword = adminPasswordInput
+    ? await bcrypt.hash(adminPasswordInput, BCRYPT_COST)
+    : null;
 
-  // 기존 배포의 "admin" 계정은 새 아이디로 1회 전환 (비밀번호도 SEED_ADMIN_PASSWORD로 재설정)
+  // 기존 배포의 "admin" 계정은 새 아이디로 1회 전환 (SEED_ADMIN_PASSWORD가 있으면 비밀번호도 재설정)
   const legacyAdmin = await prisma.user.findUnique({
     where: { username: LEGACY_ADMIN_USERNAME },
   });
@@ -25,22 +49,29 @@ async function main() {
   if (legacyAdmin && !newAdminExists) {
     await prisma.user.update({
       where: { id: legacyAdmin.id },
-      data: { username: ADMIN_USERNAME, passwordHash: adminPassword },
+      data: { username: ADMIN_USERNAME, ...(adminPassword ? { passwordHash: adminPassword } : {}) },
     });
     console.log(`관리자 아이디를 ${LEGACY_ADMIN_USERNAME} → ${ADMIN_USERNAME}로 전환했습니다.`);
+  } else if (!newAdminExists) {
+    if (!adminPassword) {
+      console.warn(
+        "관리자 계정이 없지만 SEED_ADMIN_PASSWORD가 비어 있어 생성하지 않았습니다. 강력한 비밀번호를 설정한 뒤 다시 배포하세요."
+      );
+    } else {
+      await prisma.user.create({
+        data: {
+          username: ADMIN_USERNAME,
+          phone: adminPhoneInput || "01000000001",
+          passwordHash: adminPassword,
+          name: "관리자",
+          role: "ADMIN",
+        },
+      });
+      console.log("관리자 계정을 생성했습니다.");
+    }
   }
 
-  await prisma.user.upsert({
-    where: { username: ADMIN_USERNAME },
-    update: {},
-    create: {
-      username: ADMIN_USERNAME,
-      phone: "01000000001",
-      passwordHash: adminPassword,
-      name: "관리자",
-      role: "ADMIN",
-    },
-  });
+  await syncAdminPhone();
 
   const products = [
     {

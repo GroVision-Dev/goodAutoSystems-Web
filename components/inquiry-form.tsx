@@ -161,17 +161,32 @@ export default function InquiryForm({
         className="absolute -left-[9999px] h-0 w-0 opacity-0"
       />
 
-      <label className="flex items-start gap-2.5 text-xs leading-relaxed text-muted">
-        <input type="checkbox" name="agree" required className="mt-0.5 h-4 w-4 shrink-0 accent-accent" />
-        <span>
-          문의 답변을 위한 개인정보(이름, 연락처, 이메일, 회사명, 문의 내용) 수집·이용에 동의합니다.
-          답변 완료 후 1년간 보관 후 파기하며, 자세한 내용은{" "}
+      <div className="rounded-xl border border-line bg-surface-2/40 px-4 py-3 text-xs leading-relaxed text-muted">
+        <p className="font-medium text-foreground">개인정보 수집·이용 안내</p>
+        <dl className="mt-2 grid gap-1 sm:grid-cols-[5.5rem_1fr]">
+          <dt>수집 목적</dt>
+          <dd>도입 문의 답변 및 상담</dd>
+          <dt>필수 항목</dt>
+          <dd>이름, 휴대폰 번호, 문의 내용</dd>
+          <dt>선택 항목</dt>
+          <dd>이메일, 회사명, 관심 상품 (입력한 경우에만 수집)</dd>
+          <dt>보유 기간</dt>
+          <dd>문의 처리 완료 후 1년 보관 후 파기</dd>
+        </dl>
+        <p className="mt-2">
+          동의를 거부할 수 있으며, 거부 시 문의 접수가 제한됩니다. 자세한 내용은{" "}
           <Link href="/privacy" className="underline hover:text-foreground">
             개인정보처리방침
           </Link>
-          을 확인해 주세요. <span className="text-red-400">*</span>
-        </span>
-      </label>
+          을 확인해 주세요.
+        </p>
+        <label className="mt-3 flex items-start gap-2.5">
+          <input type="checkbox" name="agree" required className="mt-0.5 h-4 w-4 shrink-0 accent-accent" />
+          <span>
+            위 개인정보 수집·이용에 동의합니다. <span className="text-red-400">(필수)</span>
+          </span>
+        </label>
+      </div>
 
       {error && <p className="text-sm text-red-400">{error}</p>}
 

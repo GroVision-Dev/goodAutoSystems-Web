@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import {
   BILLING_MONTH_RE,
@@ -11,14 +10,8 @@ import {
   invoiceSmsText,
 } from "@/lib/billing";
 import { sendInvoiceSms } from "@/lib/sms";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    throw new Error("관리자 권한이 필요합니다.");
-  }
-  return session;
-}
+import { assertId, requireAdmin } from "@/lib/auth-guard";
+import { writeAudit } from "@/lib/audit";
 
 export interface BillingActionState {
   error?: string;
@@ -85,8 +78,8 @@ async function notifyInvoice(invoice: {
 }
 
 const monthlyFeeSchema = z.object({
-  userId: z.string().min(1),
-  amount: z.coerce.number().int().min(0, "금액은 0 이상이어야 합니다."),
+  userId: z.string().min(1).max(100),
+  amount: z.coerce.number().int().min(0, "금액은 0 이상이어야 합니다.").max(100_000_000, "금액이 너무 큽니다."),
   title: z.string().trim().max(60, "항목명은 60자 이내로 입력하세요."),
 });
 
@@ -95,7 +88,7 @@ export async function setMonthlyFee(
   _prev: BillingActionState,
   formData: FormData
 ): Promise<BillingActionState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const parsed = monthlyFeeSchema.safeParse({
     userId: formData.get("userId"),
@@ -122,6 +115,13 @@ export async function setMonthlyFee(
       billingDay: amount > 0 ? billingDay : null,
     },
   });
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_MONTHLY_FEE_SET",
+    targetType: "user",
+    targetId: userId,
+    detail: { username: user.username, amount, billingDay },
+  });
   revalidateBilling();
   if (amount <= 0) return { ok: true, message: "월 결제 설정을 해제했습니다." };
   return {
@@ -133,10 +133,10 @@ export async function setMonthlyFee(
 }
 
 const invoiceSchema = z.object({
-  userId: z.string().min(1, "회원을 선택하세요."),
+  userId: z.string().min(1, "회원을 선택하세요.").max(100),
   billingMonth: z.string().regex(BILLING_MONTH_RE, "청구 월 형식이 올바르지 않습니다."),
   title: z.string().trim().min(1, "항목명을 입력하세요.").max(60),
-  amount: z.coerce.number().int().min(100, "금액은 100원 이상이어야 합니다."),
+  amount: z.coerce.number().int().min(100, "금액은 100원 이상이어야 합니다.").max(100_000_000, "금액이 너무 큽니다."),
   memo: z.string().trim().max(200).optional(),
 });
 
@@ -145,7 +145,7 @@ export async function createInvoice(
   _prev: BillingActionState,
   formData: FormData
 ): Promise<BillingActionState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const parsed = invoiceSchema.safeParse({
     userId: formData.get("userId"),
@@ -186,14 +186,22 @@ export async function createInvoice(
   });
 
   let message = `${user.name} · ${formatBillingMonth(billingMonth)} 청구서를 발행했습니다.`;
+  let notified = false;
   if (notify) {
     try {
-      const sent = await notifyInvoice(invoice);
-      message += sent ? " 안내 문자를 보냈습니다." : " (문자 미설정: 발송 생략)";
+      notified = await notifyInvoice(invoice);
+      message += notified ? " 안내 문자를 보냈습니다." : " (문자 미설정: 발송 생략)";
     } catch (e) {
       message += ` 문자 발송 실패: ${e instanceof Error ? e.message : "알 수 없는 오류"}`;
     }
   }
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_INVOICE_CREATED",
+    targetType: "invoice",
+    targetId: invoice.id,
+    detail: { username: user.username, billingMonth, amount, notified },
+  });
   revalidateBilling();
   return { ok: true, message };
 }
@@ -206,7 +214,7 @@ export async function generateMonthlyInvoices(
   _prev: BillingActionState,
   formData: FormData
 ): Promise<BillingActionState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const billingMonth = String(formData.get("billingMonth") ?? "");
   if (!BILLING_MONTH_RE.test(billingMonth)) {
@@ -259,6 +267,13 @@ export async function generateMonthlyInvoices(
     if (skipped === created.length) message += " (문자 미설정: 발송 생략)";
     else message += ` 문자 발송 ${sent}건${failed ? `, 실패 ${failed}건` : ""}.`;
   }
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_INVOICES_GENERATED",
+    targetType: "billingMonth",
+    targetId: billingMonth,
+    detail: { count: created.length, notify },
+  });
   revalidateBilling();
   return { ok: true, message };
 }
@@ -268,12 +283,12 @@ export async function issueScheduledInvoice(
   _prev: BillingActionState,
   formData: FormData
 ): Promise<BillingActionState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const userId = String(formData.get("userId") ?? "");
   const billingMonth = String(formData.get("billingMonth") ?? "");
   const notify = formData.get("notify") !== "off";
-  if (!userId || !BILLING_MONTH_RE.test(billingMonth)) {
+  if (!userId || userId.length > 100 || !BILLING_MONTH_RE.test(billingMonth)) {
     return { error: "요청이 올바르지 않습니다." };
   }
 
@@ -300,14 +315,22 @@ export async function issueScheduledInvoice(
   });
 
   let message = `${user.name} · ${formatBillingMonth(billingMonth)} 청구서를 발행했습니다.`;
+  let notified = false;
   if (notify) {
     try {
-      const sent = await notifyInvoice(invoice);
-      message += sent ? " 안내 문자를 보냈습니다." : " (문자 미설정: 발송 생략)";
+      notified = await notifyInvoice(invoice);
+      message += notified ? " 안내 문자를 보냈습니다." : " (문자 미설정: 발송 생략)";
     } catch (e) {
       message += ` 문자 발송 실패: ${e instanceof Error ? e.message : "알 수 없는 오류"}`;
     }
   }
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_INVOICE_CREATED",
+    targetType: "invoice",
+    targetId: invoice.id,
+    detail: { username: user.username, billingMonth, amount: invoice.amount, notified, scheduled: true },
+  });
   revalidateBilling();
   return { ok: true, message };
 }
@@ -317,9 +340,10 @@ export async function sendInvoiceNotice(
   _prev: BillingActionState,
   formData: FormData
 ): Promise<BillingActionState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const invoiceId = String(formData.get("invoiceId") ?? "");
+  if (!invoiceId || invoiceId.length > 100) return { error: "요청이 올바르지 않습니다." };
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: { user: { select: { phone: true, name: true, status: true } } },
@@ -330,6 +354,13 @@ export async function sendInvoiceNotice(
 
   try {
     const sent = await notifyInvoice(invoice);
+    await writeAudit({
+      actor: session.user,
+      action: "ADMIN_INVOICE_NOTICE_SENT",
+      targetType: "invoice",
+      targetId: invoice.id,
+      detail: { sent },
+    });
     revalidateBilling();
     return sent
       ? { ok: true, message: `${invoice.user.name} 회원에게 문자를 보냈습니다.` }
@@ -341,7 +372,8 @@ export async function sendInvoiceNotice(
 
 /** 미납 청구서 취소 */
 export async function cancelInvoice(invoiceId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  assertId(invoiceId, "invoiceId");
   const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
   if (!invoice) throw new Error("청구서를 찾을 수 없습니다.");
   if (invoice.status !== "UNPAID") throw new Error("미납 상태의 청구서만 취소할 수 있습니다.");
@@ -350,12 +382,20 @@ export async function cancelInvoice(invoiceId: string) {
     where: { id: invoiceId },
     data: { status: "CANCELED" },
   });
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_INVOICE_CANCELED",
+    targetType: "invoice",
+    targetId: invoiceId,
+    detail: { billingMonth: invoice.billingMonth, amount: invoice.amount },
+  });
   revalidateBilling();
 }
 
 /** 취소된 청구서를 다시 미납으로 복구 */
 export async function reopenInvoice(invoiceId: string) {
-  await requireAdmin();
+  const session = await requireAdmin();
+  assertId(invoiceId, "invoiceId");
   const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
   if (!invoice) throw new Error("청구서를 찾을 수 없습니다.");
   if (invoice.status !== "CANCELED") throw new Error("취소된 청구서만 복구할 수 있습니다.");
@@ -363,6 +403,13 @@ export async function reopenInvoice(invoiceId: string) {
   await prisma.invoice.update({
     where: { id: invoiceId },
     data: { status: "UNPAID" },
+  });
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_INVOICE_REOPENED",
+    targetType: "invoice",
+    targetId: invoiceId,
+    detail: { billingMonth: invoice.billingMonth, amount: invoice.amount },
   });
   revalidateBilling();
 }

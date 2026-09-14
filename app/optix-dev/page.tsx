@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { invoiceOrderName } from "@/lib/billing";
+import { requireAdminPage } from "@/lib/auth-guard";
+import { logAdminView } from "@/lib/audit";
+import { PENDING_ORDER_TTL_MINUTES } from "@/lib/order-expiry";
 
 export const metadata = { title: "관리자 대시보드" };
 
@@ -9,9 +12,13 @@ const ORDER_STATUS: Record<string, { label: string; className: string }> = {
   PAID: { label: "결제 완료", className: "bg-accent/15 text-accent" },
   FAILED: { label: "결제 실패", className: "bg-red-500/15 text-red-400" },
   CANCELED: { label: "취소됨", className: "bg-muted/15 text-muted" },
+  EXPIRED: { label: "만료", className: "bg-muted/15 text-muted" },
 };
 
 export default async function AdminDashboardPage() {
+  const session = await requireAdminPage();
+  await logAdminView(session, "ADMIN_VIEW_DASHBOARD");
+
   const [
     userCount,
     productCount,
@@ -69,7 +76,7 @@ export default async function AdminDashboardPage() {
       label: "결제 대기 주문",
       value: `${pendingOrderCount.toLocaleString()}건`,
       href: "/optix-dev/orders?status=PENDING",
-      hint: "결제창을 열었지만 완료되지 않은 주문",
+      hint: `결제창을 열었지만 완료되지 않은 주문 (${PENDING_ORDER_TTL_MINUTES}분 후 자동 만료)`,
     },
     {
       label: "미납 청구서",

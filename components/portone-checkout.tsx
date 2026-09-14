@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PortOne from "@portone/browser-sdk/v2";
 
 type Props = { slug: string; invoiceId?: never } | { invoiceId: string; slug?: never };
 
+interface CreatedOrder {
+  orderId: string;
+  amount: number;
+  orderName: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+}
+
 export default function PortOneCheckout(props: Props) {
   const { slug, invoiceId } = props;
-  const orderRef = useRef<{
-    orderId: string;
-    amount: number;
-    orderName: string;
-    customerName: string;
-    customerPhone: string;
-    customerEmail: string;
-  } | null>(null);
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,43 +25,54 @@ export default function PortOneCheckout(props: Props) {
   /** 이메일 도입 전 가입 회원은 이메일이 없어 결제창을 열 수 없다 (이니시스 V2 필수 항목) */
   const [missingEmail, setMissingEmail] = useState(false);
 
+  // 진입 시에는 결제 가능 여부만 확인한다. 주문(PENDING)은 결제하기를 누를 때 만든다.
   useEffect(() => {
     let cancelled = false;
 
-    async function init() {
+    async function check() {
       try {
         const res = await fetch("/api/orders", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(slug ? { slug } : { invoiceId }),
+          body: JSON.stringify({ ...(slug ? { slug } : { invoiceId }), dryRun: true }),
         });
-        if (!res.ok) {
-          const data = await res.json().catch(() => null);
-          throw new Error(data?.error ?? "주문 생성에 실패했습니다.");
-        }
-        const order = await res.json();
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error ?? "결제를 준비하지 못했습니다.");
         if (cancelled) return;
-        orderRef.current = order;
-        if (!order.customerEmail) {
+        if (!data?.hasEmail) {
           setMissingEmail(true);
           return;
         }
         setReady(true);
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "주문을 생성하지 못했습니다.");
+        if (!cancelled) setError(e instanceof Error ? e.message : "결제를 준비하지 못했습니다.");
       }
     }
 
-    init();
+    check();
     return () => {
       cancelled = true;
     };
   }, [slug, invoiceId]);
 
-  async function handlePay() {
-    const order = orderRef.current;
-    if (!order) return;
+  async function createOrder(): Promise<CreatedOrder | null> {
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(slug ? { slug } : { invoiceId }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      if (data?.code === "EMAIL_REQUIRED") {
+        setMissingEmail(true);
+        return null;
+      }
+      throw new Error(data?.error ?? "주문 생성에 실패했습니다.");
+    }
+    return data as CreatedOrder;
+  }
 
+  async function handlePay() {
     const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
     const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
     if (!storeId || !channelKey) {
@@ -70,12 +82,19 @@ export default function PortOneCheckout(props: Props) {
 
     setPaying(true);
     try {
+      const order = await createOrder();
+      if (!order) {
+        setPaying(false);
+        return;
+      }
+
       const response = await PortOne.requestPayment({
         storeId,
         channelKey,
         // 포트원 paymentId로 주문번호를 그대로 사용해 서버에서 주문을 역조회한다
         paymentId: order.orderId,
         orderName: order.orderName,
+        // 표시용 금액일 뿐, 실제 결제 금액은 서버가 포트원 조회로 주문 금액과 대조한다
         totalAmount: order.amount,
         currency: "KRW",
         payMethod: "CARD",
@@ -91,7 +110,7 @@ export default function PortOneCheckout(props: Props) {
 
       // 리디렉션 방식이면 여기 도달하지 않고 redirectUrl로 이동한다
       if (!response || response.code !== undefined) {
-        // 사용자가 결제창을 닫은 경우 등
+        // 사용자가 결제창을 닫은 경우 등 — 주문은 결제 대기로 남았다가 자동 만료된다
         setError(response?.message ?? "결제가 취소되었습니다.");
         setPaying(false);
         return;
@@ -140,7 +159,7 @@ export default function PortOneCheckout(props: Props) {
         disabled={!ready || paying}
         className="mt-4 w-full rounded-lg bg-accent py-4 font-medium text-white transition hover:bg-accent/80 disabled:opacity-50"
       >
-        {ready ? (paying ? "결제 진행 중..." : "결제하기") : "주문 준비 중..."}
+        {ready ? (paying ? "결제 진행 중..." : "결제하기") : "결제 준비 중..."}
       </button>
     </div>
   );

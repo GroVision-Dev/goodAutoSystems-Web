@@ -7,6 +7,7 @@ import {
   withdrawAccount,
   type AccountFormState,
 } from "@/app/mypage/actions";
+import { PASSWORD_PLACEHOLDER } from "@/lib/validators";
 
 const inputClass =
   "w-full rounded-lg border border-line bg-surface-2 px-3 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none";
@@ -95,7 +96,8 @@ export default function AccountSettings({
             type="password"
             required
             minLength={8}
-            placeholder="새 비밀번호 (8자 이상)"
+            maxLength={72}
+            placeholder={PASSWORD_PLACEHOLDER}
             className={inputClass}
           />
           <input

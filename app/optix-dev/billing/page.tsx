@@ -16,6 +16,8 @@ import {
   SendNoticeButton,
 } from "@/components/admin-billing-forms";
 import { cancelInvoice, reopenInvoice } from "./actions";
+import { requireAdminPage } from "@/lib/auth-guard";
+import { logAdminView } from "@/lib/audit";
 
 export const metadata = { title: "월결제 관리" };
 
@@ -45,7 +47,9 @@ export default async function AdminBillingPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string; month?: string }>;
 }) {
+  const session = await requireAdminPage();
   const { q, status, month } = await searchParams;
+  await logAdminView(session, "ADMIN_VIEW_BILLING", { q, status, month });
   const thisMonth = currentBillingMonth();
   const now = new Date();
 

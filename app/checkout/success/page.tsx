@@ -2,14 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import {
-  getPayment,
-  verifyPaidPayment,
-  methodLabel,
-  PortOneApiError,
-} from "@/lib/portone";
 import { invoiceOrderName } from "@/lib/billing";
-import { setupMonthlyBillingAfterPurchase } from "@/lib/monthly-purchase";
+import { syncPaymentFromPortOne, type PaymentSyncResult } from "@/lib/payment-sync";
 
 export const metadata = { title: "결제 완료" };
 
@@ -17,6 +11,11 @@ interface SearchParams {
   paymentId?: string;
   code?: string;
   message?: string;
+}
+
+/** 포트원 오류 코드는 표시용으로 영문·숫자·밑줄만 남긴다 */
+function safeCode(code: string) {
+  return code.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
 }
 
 export default async function CheckoutSuccessPage({
@@ -61,85 +60,74 @@ export default async function CheckoutSuccessPage({
     );
   }
 
-  // 리디렉션 방식에서 결제 실패 시 포트원이 code/message를 붙여 돌려보낸다
+  // 리디렉션 방식에서 결제 실패 시 포트원이 code/message를 붙여 돌려보낸다.
+  // 결제 대기 주문만 실패로 바꾸고(취소·환불된 주문은 건드리지 않음), 화면에는 URL의 문구를 그대로 띄우지 않는다.
   if (code) {
-    const failReason = message ?? `결제 실패 (${code})`;
-    await prisma.order.update({
-      where: { orderId },
-      data: { status: "FAILED", failReason },
+    await prisma.order.updateMany({
+      where: { orderId, status: "PENDING" },
+      data: {
+        status: "FAILED",
+        failReason: (message ?? `결제 실패 (${safeCode(code)})`).slice(0, 200),
+      },
     });
-    return <ResultCard ok={false} message={failReason} />;
+    return (
+      <ResultCard
+        ok={false}
+        message="결제가 완료되지 않았습니다. 다시 시도해 주세요."
+        code={safeCode(code)}
+      />
+    );
   }
 
-  let failMessage: string | null = null;
+  let result: PaymentSyncResult;
   try {
-    // 결제 위변조 검증: 포트원 결제 단건 조회로 상태·금액을 서버 주문과 대조
-    const payment = await getPayment(paymentId);
-    verifyPaidPayment(payment, order.amount);
-    const paidAt = new Date();
-    await prisma.$transaction([
-      prisma.order.update({
-        where: { orderId },
-        data: {
-          status: "PAID",
-          paymentKey: payment.transactionId,
-          method: methodLabel(payment),
-          paidAt,
-        },
-      }),
-      ...(order.invoiceId
-        ? [
-            prisma.invoice.update({
-              where: { id: order.invoiceId },
-              data: { status: "PAID", paidAt },
-            }),
-          ]
-        : []),
-    ]);
-
-    // 월 결제 상품: 첫 달 결제 완료 → 회원 월 결제 설정 + 이번 달 청구서(납부 완료) 연결.
-    // 결제 자체는 이미 확정됐으므로 여기서 실패해도 결제 완료로 처리하고 로그만 남긴다.
-    if (order.product?.billingType === "MONTHLY") {
-      try {
-        await setupMonthlyBillingAfterPurchase({
-          orderId,
-          userId: order.userId,
-          product: { name: order.product.name, price: order.product.price },
-          paidAt,
-        });
-      } catch (e) {
-        console.error("[checkout] 월 결제 설정 등록 실패", orderId, e);
-      }
-    }
+    // 결제 위변조 검증: 포트원 결제 단건 조회로 상태·금액을 서버 주문과 대조 (웹훅과 같은 로직)
+    result = await syncPaymentFromPortOne(orderId, { source: "success_page" });
   } catch (e) {
-    failMessage =
-      e instanceof PortOneApiError ? e.message : "결제 확인 중 오류가 발생했습니다.";
-    await prisma.order.update({
-      where: { orderId },
-      data: { status: "FAILED", failReason: failMessage },
-    });
+    console.error("[checkout] 결제 확인 실패", orderId, e);
+    return (
+      <ResultCard
+        ok={false}
+        title="결제 확인 지연"
+        message="결제 확인 중 일시적인 오류가 발생했습니다. 결제가 완료되었다면 잠시 후 마이페이지에서 반영됩니다."
+      />
+    );
   }
 
-  if (failMessage) {
-    return <ResultCard ok={false} message={failMessage} />;
+  switch (result.status) {
+    case "paid":
+      return (
+        <ResultCard
+          ok={true}
+          message={`${orderName} 결제가 완료되었습니다.`}
+          productCategory={productCategory}
+        />
+      );
+    case "pending":
+      return <ResultCard ok={false} title="결제 확인 중" message={result.message} />;
+    case "refunded":
+      return <ResultCard ok={false} title="자동 환불" message={result.message} />;
+    case "canceled":
+      return <ResultCard ok={false} title="취소된 결제" message={result.message} />;
+    case "failed":
+      return <ResultCard ok={false} message={result.message} />;
+    default:
+      return <ResultCard ok={false} message="주문을 찾을 수 없습니다." />;
   }
-  return (
-    <ResultCard
-      ok={true}
-      message={`${orderName} 결제가 완료되었습니다.`}
-      productCategory={productCategory}
-    />
-  );
 }
 
 function ResultCard({
   ok,
   message,
   productCategory,
+  title,
+  code,
 }: {
   ok: boolean;
   message: string;
   productCategory?: string;
+  title?: string;
+  code?: string;
 }) {
   return (
     <div className="mx-auto max-w-md px-4 py-24">
@@ -152,9 +140,10 @@ function ResultCard({
           {ok ? "✓" : "✕"}
         </div>
         <h1 className="mt-6 text-xl font-bold">
-          {ok ? "결제 완료" : "결제 실패"}
+          {title ?? (ok ? "결제 완료" : "결제 실패")}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">{message}</p>
+        {code && <p className="mt-2 text-xs text-muted">오류 코드: {code}</p>}
         <div className="mt-8 flex flex-col gap-3">
           {ok ? (
             <>
@@ -175,13 +164,13 @@ function ResultCard({
           ) : (
             <>
               <Link
-                href="/products"
+                href="/mypage"
                 className="rounded-lg bg-accent py-3 font-medium text-white transition hover:bg-accent/80"
               >
-                상품 목록으로
+                마이페이지에서 결제 상태 확인
               </Link>
-              <Link href="/" className="text-sm text-muted hover:text-foreground">
-                홈으로
+              <Link href="/products" className="text-sm text-muted hover:text-foreground">
+                상품 목록으로
               </Link>
             </>
           )}

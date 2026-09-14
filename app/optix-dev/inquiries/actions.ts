@@ -2,16 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session || session.user.role !== "ADMIN") {
-    throw new Error("관리자 권한이 필요합니다.");
-  }
-  return session;
-}
+import { assertId, requireAdmin } from "@/lib/auth-guard";
+import { writeAudit } from "@/lib/audit";
 
 export interface InquiryActionState {
   error?: string;
@@ -25,7 +18,7 @@ function revalidateInquiries() {
 }
 
 const updateSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).max(100),
   status: z.enum(["NEW", "IN_PROGRESS", "DONE"]),
   adminMemo: z.string().trim().max(1000, "메모는 1000자 이내로 입력하세요."),
 });
@@ -35,7 +28,7 @@ export async function updateInquiry(
   _prev: InquiryActionState,
   formData: FormData
 ): Promise<InquiryActionState> {
-  await requireAdmin();
+  const session = await requireAdmin();
 
   const parsed = updateSchema.safeParse({
     id: formData.get("id"),
@@ -54,13 +47,30 @@ export async function updateInquiry(
     where: { id },
     data: { status, adminMemo: adminMemo || null },
   });
+  await writeAudit({
+    actor: session.user,
+    action: "ADMIN_INQUIRY_UPDATED",
+    targetType: "inquiry",
+    targetId: id,
+    detail: { from: inquiry.status, to: status, memoChanged: (inquiry.adminMemo ?? "") !== adminMemo },
+  });
   revalidateInquiries();
   return { ok: true, message: "저장했습니다." };
 }
 
 /** 스팸 등 불필요한 문의 삭제 */
 export async function deleteInquiry(id: string) {
-  await requireAdmin();
-  await prisma.inquiry.delete({ where: { id } }).catch(() => null);
+  const session = await requireAdmin();
+  assertId(id, "inquiryId");
+  const deleted = await prisma.inquiry.delete({ where: { id } }).catch(() => null);
+  if (deleted) {
+    await writeAudit({
+      actor: session.user,
+      action: "ADMIN_INQUIRY_DELETED",
+      targetType: "inquiry",
+      targetId: id,
+      detail: { status: deleted.status, createdAt: deleted.createdAt.toISOString() },
+    });
+  }
   revalidateInquiries();
 }

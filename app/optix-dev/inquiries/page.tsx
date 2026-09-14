@@ -2,6 +2,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { INQUIRY_STATUS } from "@/lib/inquiry";
 import { formatPhone } from "@/lib/phone";
+import { requireAdminPage } from "@/lib/auth-guard";
+import { logAdminView } from "@/lib/audit";
 import AdminInquiryControls from "@/components/admin-inquiry-controls";
 import { deleteInquiry } from "./actions";
 
@@ -15,7 +17,9 @@ export default async function AdminInquiriesPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
+  const session = await requireAdminPage();
   const { q, status } = await searchParams;
+  await logAdminView(session, "ADMIN_VIEW_INQUIRIES", { q, status });
 
   const [inquiries, products, newCount] = await Promise.all([
     prisma.inquiry.findMany({

@@ -13,6 +13,10 @@ import {
   shouldTrackPath,
   truncateUserAgent,
 } from "@/lib/analytics";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+const TRACK_IP_LIMIT = 60;
+const TRACK_IP_WINDOW_MS = 60 * 1000;
 
 const trackSchema = z.object({
   path: z.string().min(1).max(2000),
@@ -36,15 +40,19 @@ export async function POST(request: Request) {
   const userAgent = headerStore.get("user-agent");
   if (isBotUserAgent(userAgent)) return new NextResponse(null, { status: 204 });
 
+  // 대량 요청으로 DB가 채워지지 않도록 IP당 1분 60건까지만 기록
+  const clientIp = getClientIp(headerStore);
+  if (!checkRateLimit(`track:${clientIp}`, TRACK_IP_LIMIT, TRACK_IP_WINDOW_MS).ok) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const cookieStore = await cookies();
   let visitorId = cookieStore.get(VISITOR_COOKIE)?.value;
   const isNewVisitor = !visitorId || !/^[a-f0-9-]{36}$/i.test(visitorId);
   if (isNewVisitor) visitorId = randomUUID();
 
   const session = await auth().catch(() => null);
-  const ipMasked = maskIp(
-    headerStore.get("x-forwarded-for") ?? headerStore.get("x-real-ip"),
-  );
+  const ipMasked = maskIp(clientIp === "unknown" ? null : clientIp);
 
   // 외부 유입만 기록 (자기 사이트 내 이동은 제외)
   let referrer: string | null = null;

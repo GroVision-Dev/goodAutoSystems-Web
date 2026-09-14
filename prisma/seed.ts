@@ -7,12 +7,15 @@ const prisma = new PrismaClient();
 const ADMIN_USERNAME = "optixdev1234";
 const LEGACY_ADMIN_USERNAME = "admin";
 
+/** 로컬 개발 전용 기본값 — 운영 시드(seed.js)는 SEED_ADMIN_PASSWORD가 없으면 관리자를 만들지 않는다 */
+const DEV_ADMIN_PASSWORD = "Optix-dev-2026!";
+
 async function main() {
   const adminPassword = await bcrypt.hash(
-    process.env.SEED_ADMIN_PASSWORD || "optixdev1234",
-    10
+    process.env.SEED_ADMIN_PASSWORD || DEV_ADMIN_PASSWORD,
+    12
   );
-  const userPassword = await bcrypt.hash("test1234!", 10);
+  const userPassword = await bcrypt.hash("test1234!", 12);
 
   // 기존 DB의 "admin" 계정은 새 아이디로 1회 전환 (비밀번호도 SEED_ADMIN_PASSWORD로 재설정)
   const legacyAdmin = await prisma.user.findUnique({
@@ -34,7 +37,7 @@ async function main() {
     update: {},
     create: {
       username: ADMIN_USERNAME,
-      phone: "01000000001",
+      phone: (process.env.SEED_ADMIN_PHONE || "").replace(/\D/g, "") || "01000000001",
       passwordHash: adminPassword,
       name: "관리자",
       role: "ADMIN",

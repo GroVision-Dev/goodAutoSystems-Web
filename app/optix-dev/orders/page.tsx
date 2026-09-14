@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import AdminOrderCancel from "@/components/admin-order-cancel";
 import { invoiceOrderName } from "@/lib/billing";
+import { requireAdminPage } from "@/lib/auth-guard";
+import { logAdminView } from "@/lib/audit";
 
 export const metadata = { title: "주문내역" };
 
@@ -9,6 +11,7 @@ const STATUS_LABEL: Record<string, { label: string; className: string }> = {
   PAID: { label: "결제 완료", className: "bg-accent/15 text-accent" },
   FAILED: { label: "결제 실패", className: "bg-red-500/15 text-red-400" },
   CANCELED: { label: "취소됨", className: "bg-muted/15 text-muted" },
+  EXPIRED: { label: "만료", className: "bg-muted/15 text-muted" },
 };
 
 export default async function AdminOrdersPage({
@@ -16,12 +19,14 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
+  const session = await requireAdminPage();
   const { q, status } = await searchParams;
+  await logAdminView(session, "ADMIN_VIEW_ORDERS", { q, status });
 
   const orders = await prisma.order.findMany({
     where: {
       ...(status && status in STATUS_LABEL
-        ? { status: status as "PENDING" | "PAID" | "FAILED" | "CANCELED" }
+        ? { status: status as "PENDING" | "PAID" | "FAILED" | "CANCELED" | "EXPIRED" }
         : {}),
       ...(q
         ? {
@@ -59,6 +64,7 @@ export default async function AdminOrdersPage({
             <option value="PENDING">결제 대기</option>
             <option value="FAILED">결제 실패</option>
             <option value="CANCELED">취소됨</option>
+            <option value="EXPIRED">만료</option>
           </select>
           <input
             name="q"
@@ -136,7 +142,7 @@ export default async function AdminOrdersPage({
                       >
                         {badge.label}
                       </span>
-                      {order.status === "CANCELED" && order.failReason && (
+                      {order.status !== "PAID" && order.status !== "PENDING" && order.failReason && (
                         <span className="mt-1 block text-xs text-muted">
                           {order.failReason}
                         </span>

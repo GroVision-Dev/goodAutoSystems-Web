@@ -11,6 +11,7 @@ const MENU = [
   { href: "/optix-dev/orders", label: "주문내역", icon: "≡" },
   { href: "/optix-dev/billing", label: "월결제 관리", icon: "▤" },
   { href: "/optix-dev/analytics", label: "접속 통계", icon: "▥" },
+  { href: "/optix-dev/audit", label: "접속기록", icon: "⚿" },
 ];
 
 /**

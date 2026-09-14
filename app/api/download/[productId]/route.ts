@@ -33,8 +33,14 @@ export async function GET(
     );
   }
 
-  // 경로 조작 방지: 파일명만 취해 private-files 내부로 한정
+  // 경로 조작 방지: 파일명만 취해 private-files 내부로 한정, 헤더 주입 방지를 위해 허용 문자만 남긴다
   const safeName = path.basename(product.downloadFile);
+  if (!/^[A-Za-z0-9._-]{1,200}$/.test(safeName) || safeName.startsWith(".")) {
+    return NextResponse.json(
+      { error: "파일을 찾을 수 없습니다. 고객센터에 문의해 주세요." },
+      { status: 404 }
+    );
+  }
   const filePath = path.join(process.cwd(), "private-files", safeName);
 
   try {
@@ -44,6 +50,8 @@ export async function GET(
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${safeName}"`,
         "Content-Length": String(file.length),
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch {

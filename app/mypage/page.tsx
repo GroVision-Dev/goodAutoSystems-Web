@@ -20,11 +20,26 @@ const STATUS_LABEL: Record<string, { label: string; className: string }> = {
   PAID: { label: "결제 완료", className: "bg-accent/15 text-accent" },
   FAILED: { label: "결제 실패", className: "bg-red-500/15 text-red-400" },
   CANCELED: { label: "취소됨", className: "bg-muted/15 text-muted" },
+  EXPIRED: { label: "만료", className: "bg-muted/15 text-muted" },
 };
 
-export default async function MyPage() {
+/** 관리자 화면에서 돌려보낸 사유 (lib/auth-guard.ts requireAdminPage) */
+const ADMIN_NOTICE: Record<string, string> = {
+  "weak-password":
+    "관리자 비밀번호가 보안 정책에 맞지 않아 관리자 기능이 잠겨 있습니다. 아래 계정 설정에서 비밀번호를 변경한 뒤 관리자 메뉴를 이용하세요.",
+  reauth:
+    "관리자 기능은 문자 2단계 인증으로 로그인한 세션에서만 사용할 수 있습니다. 로그아웃 후 다시 로그인해 주세요.",
+};
+
+export default async function MyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ admin?: string }>;
+}) {
   const session = await auth();
   if (!session) redirect("/login?callbackUrl=/mypage");
+  const { admin } = await searchParams;
+  const adminNotice = admin ? ADMIN_NOTICE[admin] : undefined;
 
   const [user, orders, invoices] = await Promise.all([
     prisma.user.findUnique({ where: { id: session.user.id } }),
@@ -52,6 +67,11 @@ export default async function MyPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:py-16">
       <h1 className="text-2xl font-bold">마이페이지</h1>
+      {adminNotice && (
+        <p className="mt-4 rounded-xl border border-yellow-500/40 bg-yellow-500/5 px-4 py-3 text-sm text-yellow-400">
+          {adminNotice}
+        </p>
+      )}
 
       {/* 내 정보 */}
       <div className="mt-6 rounded-2xl border border-line bg-surface p-5 md:mt-8 md:p-6">

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { requireAdminPage } from "@/lib/auth-guard";
 import AdminNav from "@/components/admin-nav";
 
 /** 관리자 경로는 검색엔진에 노출하지 않는다 */
@@ -13,9 +12,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  if (!session) redirect("/login?callbackUrl=/optix-dev");
-  if (session.user.role !== "ADMIN") redirect("/");
+  // 비로그인·일반회원·2단계 인증 미완료·비밀번호 정책 미달 세션은 여기서 돌려보낸다
+  const session = await requireAdminPage();
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 md:flex-row md:gap-8 md:py-12">

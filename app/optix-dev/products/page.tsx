@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { requireAdminPage } from "@/lib/auth-guard";
 import { toggleProductActive, deleteProduct } from "@/app/optix-dev/actions";
 import AdminProductForm from "@/components/admin-product-form";
 import { contractRangeLabel, isMonthly } from "@/lib/product-pricing";
@@ -16,6 +17,7 @@ export default async function AdminProductsPage({
 }: {
   searchParams: Promise<{ edit?: string }>;
 }) {
+  await requireAdminPage();
   const { edit } = await searchParams;
   const products = await prisma.product.findMany({
     orderBy: { createdAt: "asc" },

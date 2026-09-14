@@ -2,7 +2,9 @@ const API_BASE = "https://api.portone.io";
 
 export interface PortOnePayment {
   id: string;
+  /** READY / PENDING / VIRTUAL_ACCOUNT_ISSUED / PAID / FAILED / PARTIAL_CANCELLED / CANCELLED */
   status: string;
+  storeId?: string;
   transactionId: string;
   amount: { total: number; [key: string]: unknown };
   currency?: string;

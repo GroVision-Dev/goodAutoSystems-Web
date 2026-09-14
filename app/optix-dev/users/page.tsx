@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { requireAdminPage } from "@/lib/auth-guard";
+import { logAdminView } from "@/lib/audit";
 import { toggleUserStatus, toggleUserRole } from "@/app/optix-dev/actions";
 import { MonthlyFeeForm } from "@/components/admin-billing-forms";
 import { formatPhone } from "@/lib/phone";
@@ -20,8 +21,9 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
-  const session = await auth();
+  const session = await requireAdminPage();
   const { q, status } = await searchParams;
+  await logAdminView(session, "ADMIN_VIEW_USERS", { q, status });
 
   const users = await prisma.user.findMany({
     where: {
