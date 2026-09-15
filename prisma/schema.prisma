@@ -38,6 +38,46 @@ enum OrderStatus {
   EXPIRED
 }
 
+/// 단건 결제 요청 상태 — 만료(EXPIRED)는 유효기간 경과, 환불(REFUNDED)은 결제 후 취소
+enum PaymentRequestStatus {
+  PENDING
+  PAID
+  CANCELED
+  EXPIRED
+  REFUNDED
+}
+
+/// 단건 결제 요청 — 관리자가 비회원에게 문자로 결제 링크(/pay/{token})를 보낸다. 결제는 Order로 처리
+model PaymentRequest {
+  id                String               @id @default(cuid())
+  /// 결제 링크 토큰 (randomBytes(32) base64url, 추측 불가)
+  token             String               @unique
+  title             String
+  amount            Int
+  /// 고객에게 표시되는 메모
+  memo              String?
+  recipientName     String
+  /// 숫자만 (01012345678)
+  recipientPhone    String
+  /// 결제 시 고객이 입력한 이메일 (이니시스 V2 필수)
+  customerEmail     String?
+  status            PaymentRequestStatus @default(PENDING)
+  expiresAt         DateTime
+  /// 요청한 관리자 (아이디 변경과 무관하게 당시 값 보관)
+  createdById       String
+  createdByUsername String
+  notifiedAt        DateTime?
+  sentCount         Int                  @default(0)
+  paidAt            DateTime?
+  canceledAt        DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  orders            Order[]
+
+  @@index([status, createdAt])
+  @@index([recipientPhone])
+}
+
 /// 회원가입 휴대폰 문자 인증 — phone은 숫자만(01012345678)
 model PhoneVerification {
   id        String   @id @default(cuid())
@@ -225,21 +265,25 @@ model PageView {
 }
 
 model Order {
-  id         String      @id @default(cuid())
-  userId     String
-  productId  String?
-  invoiceId  String?
-  orderId    String      @unique
-  amount     Int
-  status     OrderStatus @default(PENDING)
-  paymentKey String?
-  method     String?
-  failReason String?
-  paidAt     DateTime?
-  createdAt  DateTime    @default(now())
-  user       User        @relation(fields: [userId], references: [id])
-  product    Product?    @relation(fields: [productId], references: [id])
-  invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
+  id               String          @id @default(cuid())
+  /// 회원 주문이면 회원 ID, 비회원 단건 결제 요청이면 null
+  userId           String?
+  productId        String?
+  invoiceId        String?
+  /// 비회원 단건 결제 요청 주문
+  paymentRequestId String?
+  orderId          String          @unique
+  amount           Int
+  status           OrderStatus     @default(PENDING)
+  paymentKey       String?
+  method           String?
+  failReason       String?
+  paidAt           DateTime?
+  createdAt        DateTime        @default(now())
+  user             User?           @relation(fields: [userId], references: [id])
+  product          Product?        @relation(fields: [productId], references: [id])
+  invoice          Invoice?        @relation(fields: [invoiceId], references: [id])
+  paymentRequest   PaymentRequest? @relation(fields: [paymentRequestId], references: [id])
 
   @@index([status, createdAt])
 }
