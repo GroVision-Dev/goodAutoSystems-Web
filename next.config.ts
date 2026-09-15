@@ -29,6 +29,7 @@ const nextConfig: NextConfig = {
       { source: "/optix-dev/:path*", headers: noStoreHeaders },
       { source: "/mypage", headers: noStoreHeaders },
       { source: "/checkout/:path*", headers: noStoreHeaders },
+      { source: "/pay/:path*", headers: noStoreHeaders },
     ];
   },
 };
