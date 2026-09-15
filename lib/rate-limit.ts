@@ -70,7 +70,11 @@ type HeaderSource = Request | { get(name: string): string | null };
  * nginx가 덮어쓰는 X-Real-IP를 우선하고, 없으면 X-Forwarded-For의 마지막 값(프록시가 붙인 값)을 쓴다.
  */
 export function getClientIp(source: HeaderSource): string {
-  const headers = "headers" in source ? source.headers : source;
+  // next/headers의 headers() 결과는 내부에 headers 속성이 따로 있으므로, get 메서드 유무로 구분한다
+  const headers =
+    typeof (source as { get?: unknown }).get === "function"
+      ? (source as { get(name: string): string | null })
+      : (source as Request).headers;
   const realIp = headers.get("x-real-ip")?.trim();
   if (realIp) return realIp;
   const forwarded = headers.get("x-forwarded-for");

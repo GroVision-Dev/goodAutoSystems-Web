@@ -82,6 +82,14 @@ describe("getClientIp", () => {
     assert.equal(getClientIp(req), "10.0.0.1");
   });
 
+  test("get과 내부 headers 속성을 함께 가진 객체(next/headers)는 get을 쓴다", () => {
+    const readonlyHeadersLike = {
+      headers: { "x-real-ip": "should-not-be-used" },
+      get: (name: string) => (name === "x-real-ip" ? "7.7.7.7" : null),
+    };
+    assert.equal(getClientIp(readonlyHeadersLike), "7.7.7.7");
+  });
+
   test("헤더 객체도 받는다, 아무것도 없으면 unknown", () => {
     assert.equal(getClientIp(new Headers({ "x-real-ip": "9.9.9.9" })), "9.9.9.9");
     assert.equal(getClientIp(new Request("http://x")), "unknown");
