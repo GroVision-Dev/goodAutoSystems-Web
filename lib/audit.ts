@@ -32,6 +32,7 @@ export const AUDIT_ACTIONS = {
   ADMIN_VIEW_BILLING: "월결제 목록 열람",
   ADMIN_VIEW_ANALYTICS: "접속 통계 열람",
   ADMIN_VIEW_AUDIT: "접속기록 열람",
+  ADMIN_VIEW_PAYMENT_REQUESTS: "단건 결제 목록 열람",
 
   ADMIN_USER_STATUS_CHANGED: "회원 상태 변경",
   ADMIN_USER_ROLE_CHANGED: "회원 권한 변경",
@@ -47,6 +48,9 @@ export const AUDIT_ACTIONS = {
   ADMIN_INVOICE_REOPENED: "청구서 복구",
   ADMIN_INQUIRY_UPDATED: "문의 처리 변경",
   ADMIN_INQUIRY_DELETED: "문의 삭제",
+  ADMIN_PAYMENT_REQUEST_CREATED: "단건 결제 요청 생성",
+  ADMIN_PAYMENT_REQUEST_SENT: "단건 결제 문자 발송",
+  ADMIN_PAYMENT_REQUEST_CANCELED: "단건 결제 요청 취소",
 
   PAYMENT_CONFIRMED: "결제 확인",
   PAYMENT_AMOUNT_MISMATCH: "결제 금액 불일치",
