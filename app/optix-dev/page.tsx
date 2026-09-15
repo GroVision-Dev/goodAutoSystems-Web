@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
       prisma.invoice.findMany({ where: { status: "UNPAID" }, select: { amount: true } }),
       prisma.inquiry.count({ where: { status: "NEW" } }),
       prisma.order.findMany({
-        include: { user: true, product: true, invoice: true },
+        include: { user: true, product: true, invoice: true, paymentRequest: true },
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
@@ -141,10 +141,12 @@ export default async function AdminDashboardPage() {
                           ? order.product.name
                           : order.invoice
                             ? `[월결제] ${invoiceOrderName(order.invoice.title, order.invoice.billingMonth)}`
-                            : "—"}
+                            : order.paymentRequest
+                              ? `[단건] ${order.paymentRequest.title}`
+                              : "—"}
                       </p>
                       <p className="mt-0.5 truncate text-xs text-muted">
-                        {order.user.name} ·{" "}
+                        {order.user?.name ?? `비회원 ${order.paymentRequest?.recipientName ?? ""}`} ·{" "}
                         {order.createdAt.toLocaleString("ko-KR")}
                       </p>
                     </div>

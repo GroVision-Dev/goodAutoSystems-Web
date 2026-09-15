@@ -36,11 +36,13 @@ export default async function AdminOrdersPage({
               { user: { name: { contains: q } } },
               { product: { name: { contains: q } } },
               { invoice: { title: { contains: q } } },
+              { paymentRequest: { recipientName: { contains: q } } },
+              { paymentRequest: { title: { contains: q } } },
             ],
           }
         : {}),
     },
-    include: { user: true, product: true, invoice: true },
+    include: { user: true, product: true, invoice: true, paymentRequest: true },
     orderBy: { createdAt: "desc" },
     take: 200,
   });
@@ -69,7 +71,7 @@ export default async function AdminOrdersPage({
           <input
             name="q"
             defaultValue={q ?? ""}
-            placeholder="주문번호/회원/상품 검색"
+            placeholder="주문번호/회원/상품/받는 분 검색"
             className="min-w-0 flex-1 rounded-lg border border-line bg-surface-2 px-3 py-2 text-foreground placeholder:text-muted focus:border-accent focus:outline-none sm:w-52 sm:flex-none"
           />
           <button
@@ -116,10 +118,17 @@ export default async function AdminOrdersPage({
                   <tr key={order.id} className="border-b border-line/50 align-top">
                     <td className="whitespace-nowrap p-4 font-mono text-xs">{order.orderId}</td>
                     <td className="whitespace-nowrap p-4">
-                      {order.user.name}
-                      <span className="block text-xs text-muted">
-                        {order.user.username}
-                      </span>
+                      {order.user ? (
+                        <>
+                          {order.user.name}
+                          <span className="block text-xs text-muted">{order.user.username}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-muted">비회원</span>
+                          <span className="block text-xs">{order.paymentRequest?.recipientName ?? "—"}</span>
+                        </>
+                      )}
                     </td>
                     <td className="p-4">
                       {order.product ? (
@@ -130,6 +139,13 @@ export default async function AdminOrdersPage({
                             월결제
                           </span>
                           {invoiceOrderName(order.invoice.title, order.invoice.billingMonth)}
+                        </>
+                      ) : order.paymentRequest ? (
+                        <>
+                          <span className="mr-2 rounded-full bg-yellow-500/15 px-2 py-0.5 text-[10px] text-yellow-400">
+                            단건
+                          </span>
+                          {order.paymentRequest.title}
                         </>
                       ) : (
                         "—"

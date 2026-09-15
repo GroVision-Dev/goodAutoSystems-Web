@@ -122,6 +122,15 @@ export async function cancelOrder(
           }),
         ]
       : []),
+    // 비회원 단건 결제 요청을 환불하면 요청 상태도 환불로
+    ...(order.paymentRequestId
+      ? [
+          prisma.paymentRequest.update({
+            where: { id: order.paymentRequestId },
+            data: { status: "REFUNDED", canceledAt: new Date() },
+          }),
+        ]
+      : []),
   ]);
 
   await writeAudit({
@@ -134,6 +143,7 @@ export async function cancelOrder(
   revalidatePath("/optix-dev/orders");
   revalidatePath("/optix-dev/billing");
   revalidatePath("/mypage");
+  revalidatePath("/optix-dev/payment-requests");
   return { ok: true };
 }
 

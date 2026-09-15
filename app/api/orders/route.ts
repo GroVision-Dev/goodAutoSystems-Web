@@ -1,4 +1,3 @@
-import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
@@ -6,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { invoiceOrderName } from "@/lib/billing";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { expireStalePendingOrders } from "@/lib/order-expiry";
+import { newOrderId } from "@/lib/order-id";
 
 const createOrderSchema = z.union([
   z.object({ slug: z.string().min(1).max(100), dryRun: z.boolean().optional() }),
@@ -15,11 +15,6 @@ const createOrderSchema = z.union([
 /** 회원당 주문 생성 한도 (결제창 반복 열기로 주문이 쌓이는 것 방지) */
 const ORDER_LIMIT = 10;
 const ORDER_WINDOW_MS = 10 * 60 * 1000;
-
-/** 추측 불가능한 주문번호 (포트원 paymentId로도 사용) */
-function newOrderId() {
-  return `GAS-${Date.now()}-${randomBytes(6).toString("hex")}`;
-}
 
 /**
  * 결제 시작 시 PENDING 주문 생성. 금액은 서버의 상품 가격·청구서 금액으로 확정한다.

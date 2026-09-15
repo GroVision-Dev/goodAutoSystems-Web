@@ -30,10 +30,12 @@ export type PaymentSyncResult =
 
 const MISMATCH_MESSAGE = "결제 금액이 주문 금액과 일치하지 않아 결제가 자동 취소되었습니다.";
 const DUPLICATE_MESSAGE =
-  "이미 결제가 완료된 주문(또는 취소된 청구서)이라 이번 결제는 자동으로 환불 처리되었습니다.";
+  "이미 결제가 완료되었거나 취소된 요청이라 이번 결제는 자동으로 환불 처리되었습니다.";
+
+type DuplicateKind = "invoice" | "one_time" | "payment_request";
 
 class DuplicatePaymentError extends Error {
-  constructor(public readonly kind: "invoice" | "one_time") {
+  constructor(public readonly kind: DuplicateKind) {
     super(`중복 결제: ${kind}`);
   }
 }
@@ -150,7 +152,7 @@ async function handlePaid(
       if (claim.count !== 1) return false;
 
       // 1회 결제 상품(영구 사용권)을 같은 회원이 다른 주문으로 이미 결제했으면 중복
-      if (order.product?.billingType === "ONE_TIME" && order.productId) {
+      if (order.product?.billingType === "ONE_TIME" && order.productId && order.userId) {
         const other = await tx.order.findFirst({
           where: {
             userId: order.userId,
@@ -171,6 +173,15 @@ async function handlePaid(
         });
         if (invoice.count !== 1) throw new DuplicatePaymentError("invoice");
       }
+
+      // 비회원 단건 결제 요청은 대기·만료 상태일 때만 결제 완료 처리 (이미 결제·취소·환불된 요청이면 중복)
+      if (order.paymentRequestId) {
+        const request = await tx.paymentRequest.updateMany({
+          where: { id: order.paymentRequestId, status: { in: ["PENDING", "EXPIRED"] } },
+          data: { status: "PAID", paidAt },
+        });
+        if (request.count !== 1) throw new DuplicatePaymentError("payment_request");
+      }
       return true;
     });
   } catch (e) {
@@ -181,7 +192,7 @@ async function handlePaid(
   // 웹훅과 결제 완료 페이지가 동시에 도착한 경우 먼저 처리한 쪽만 후속 작업을 한다
   if (!claimed) return { status: "paid" };
 
-  if (order.product?.billingType === "MONTHLY") {
+  if (order.product?.billingType === "MONTHLY" && order.userId) {
     try {
       await setupMonthlyBillingAfterPurchase({
         orderId,
@@ -208,7 +219,7 @@ async function refundDuplicate(
   order: OrderWithProduct,
   payment: PortOnePayment,
   source: PaymentSyncSource,
-  kind: "invoice" | "one_time"
+  kind: DuplicateKind
 ): Promise<PaymentSyncResult> {
   const { orderId } = order;
   const refunded = await tryCancel(orderId, "중복 결제 자동 환불");
@@ -259,6 +270,12 @@ async function handleCancelled(
         await tx.invoice.updateMany({
           where: { id: order.invoiceId, status: "PAID" },
           data: { status: "UNPAID", paidAt: null },
+        });
+      }
+      if (order.paymentRequestId) {
+        await tx.paymentRequest.updateMany({
+          where: { id: order.paymentRequestId, status: "PAID" },
+          data: { status: "REFUNDED", canceledAt: new Date() },
         });
       }
       return true;

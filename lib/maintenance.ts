@@ -1,4 +1,4 @@
-import { expireStalePendingOrders } from "@/lib/order-expiry";
+import { expireStalePaymentRequests, expireStalePendingOrders } from "@/lib/order-expiry";
 import { runRetentionCleanup } from "@/lib/retention";
 
 /**
@@ -19,6 +19,8 @@ async function runOrderExpiry() {
   try {
     const expired = await expireStalePendingOrders();
     if (expired > 0) console.info(`[maintenance] 결제 대기 주문 ${expired}건 만료`);
+    const expiredRequests = await expireStalePaymentRequests();
+    if (expiredRequests > 0) console.info(`[maintenance] 단건 결제 요청 ${expiredRequests}건 만료`);
   } catch (e) {
     console.error("[maintenance] 주문 만료 처리 실패", e);
   }

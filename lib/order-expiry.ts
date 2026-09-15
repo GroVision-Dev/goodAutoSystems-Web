@@ -19,3 +19,12 @@ export async function expireStalePendingOrders(now: Date = new Date()): Promise<
   });
   return result.count;
 }
+
+/** 유효기간이 지난 결제 대기 요청을 EXPIRED로 정리한다 (결제창이 열린 채 늦게 결제되면 payment-sync가 PAID로 인정) */
+export async function expireStalePaymentRequests(now: Date = new Date()): Promise<number> {
+  const result = await prisma.paymentRequest.updateMany({
+    where: { status: "PENDING", expiresAt: { lte: now } },
+    data: { status: "EXPIRED" },
+  });
+  return result.count;
+}
