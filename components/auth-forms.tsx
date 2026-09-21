@@ -122,9 +122,12 @@ export function LoginForm() {
     backToStart(loginErrorMessage(result?.code));
   }
 
+  // 두 form에 서로 다른 key를 주어 React가 DOM 노드를 재사용하지 못하게 한다.
+  // key가 없으면 같은 자리의 비밀번호 input이 인증번호 input으로 재사용되어,
+  // 입력했던 비밀번호가 값으로 남은 채 type만 text로 바뀌며 평문 노출된다.
   if (otpStep) {
     return (
-      <form onSubmit={handleOtpSubmit} className="flex flex-col gap-4">
+      <form key="otp" onSubmit={handleOtpSubmit} className="flex flex-col gap-4">
         {notice && <p className="text-sm text-accent">{notice}</p>}
         <input
           name="otp"
@@ -158,7 +161,7 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form key="credentials" onSubmit={handleSubmit} className="flex flex-col gap-4">
       <input
         name="username"
         type="text"
