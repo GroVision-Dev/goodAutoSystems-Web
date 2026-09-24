@@ -69,9 +69,19 @@ export default function PaymentRequestCheckout({ token }: { token: string }) {
         redirectUrl: `${window.location.origin}/pay/${token}/complete`,
       });
 
-      if (!response || response.code !== undefined) {
-        setError(response?.message ?? "결제가 취소되었습니다.");
+      if (!response) {
+        setError("결제 응답을 받지 못했습니다. 다시 시도해 주세요.");
         setPaying(false);
+        return;
+      }
+      if (response.code !== undefined) {
+        // 결제창 닫힘·PG사 거절 등. 리디렉션 방식과 같은 결과 페이지로 보내 실패 사유(PG 응답 포함)를 저장·표시한다
+        console.error("[pay] 결제 실패 응답", response);
+        const q = new URLSearchParams({ paymentId: order.orderId, code: response.code });
+        if (response.message) q.set("message", response.message);
+        if (response.pgCode) q.set("pgCode", response.pgCode);
+        if (response.pgMessage) q.set("pgMessage", response.pgMessage);
+        router.push(`/pay/${token}/complete?${q.toString()}`);
         return;
       }
       router.push(`/pay/${token}/complete?paymentId=${encodeURIComponent(response.paymentId)}`);

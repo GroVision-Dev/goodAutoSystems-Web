@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isValidPaymentRequestToken } from "@/lib/payment-request";
 import { syncPaymentFromPortOne, type PaymentSyncResult } from "@/lib/payment-sync";
+import { formatPaymentFailure } from "@/lib/payment-failure";
 
 export const metadata: Metadata = {
   title: "결제 결과",
@@ -14,20 +15,21 @@ export const metadata: Metadata = {
 const RESULT_LIMIT = 30;
 const RESULT_WINDOW_MS = 10 * 60 * 1000;
 
-/** 포트원 오류 코드는 표시용으로 영문·숫자·밑줄·하이픈만 남긴다 */
-function safeCode(code: string) {
-  return code.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
-}
-
 export default async function PaymentRequestCompletePage({
   params,
   searchParams,
 }: {
   params: Promise<{ token: string }>;
-  searchParams: Promise<{ paymentId?: string; code?: string; message?: string }>;
+  searchParams: Promise<{
+    paymentId?: string;
+    code?: string;
+    message?: string;
+    pgCode?: string;
+    pgMessage?: string;
+  }>;
 }) {
   const { token } = await params;
-  const { paymentId, code, message } = await searchParams;
+  const { paymentId, code, message, pgCode, pgMessage } = await searchParams;
 
   const headerStore = await headers();
   if (!checkRateLimit(`pay-result:${getClientIp(headerStore)}`, RESULT_LIMIT, RESULT_WINDOW_MS).ok) {
@@ -52,17 +54,22 @@ export default async function PaymentRequestCompletePage({
     return <ResultCard token={token} ok message={`${title} 결제가 완료되었습니다.`} />;
   }
 
+  // 결제 실패 시 포트원이 code/message(+PG사 pgCode/pgMessage)를 쿼리로 붙여 돌려보낸다
   if (code) {
+    const failure = formatPaymentFailure({ code, message, pgCode, pgMessage });
+    console.warn("[pay] 결제 실패", paymentId, failure.failReason);
     await prisma.order.updateMany({
       where: { orderId: paymentId, status: "PENDING" },
-      data: { status: "FAILED", failReason: (message ?? `결제 실패 (${safeCode(code)})`).slice(0, 200) },
+      data: { status: "FAILED", failReason: failure.failReason },
     });
     return (
       <ResultCard
         token={token}
         ok={false}
         message="결제가 완료되지 않았습니다. 다시 시도해 주세요."
-        code={safeCode(code)}
+        code={failure.code}
+        pgCode={failure.pgCode}
+        pgMessage={failure.pgMessage}
       />
     );
   }
@@ -104,12 +111,16 @@ function ResultCard({
   message,
   title,
   code,
+  pgCode,
+  pgMessage,
 }: {
   token: string;
   ok: boolean;
   message: string;
   title?: string;
   code?: string;
+  pgCode?: string;
+  pgMessage?: string;
 }) {
   return (
     <div className="mx-auto max-w-md px-4 py-24">
@@ -125,6 +136,11 @@ function ResultCard({
         <p className="mt-3 text-sm leading-relaxed text-muted">{message}</p>
         {ok && <p className="mt-2 text-xs text-muted">카드 매출전표는 입력하신 이메일로 발송됩니다.</p>}
         {code && <p className="mt-2 text-xs text-muted">오류 코드: {code}</p>}
+        {(pgCode || pgMessage) && (
+          <p className="mt-1 text-xs text-muted">
+            결제사 응답: {[pgCode, pgMessage].filter(Boolean).join(" · ")}
+          </p>
+        )}
         <div className="mt-8 flex flex-col gap-3">
           {!ok && isValidPaymentRequestToken(token) && (
             <Link

@@ -109,10 +109,19 @@ export default function PortOneCheckout(props: Props) {
       });
 
       // 리디렉션 방식이면 여기 도달하지 않고 redirectUrl로 이동한다
-      if (!response || response.code !== undefined) {
-        // 사용자가 결제창을 닫은 경우 등 — 주문은 결제 대기로 남았다가 자동 만료된다
-        setError(response?.message ?? "결제가 취소되었습니다.");
+      if (!response) {
+        setError("결제 응답을 받지 못했습니다. 다시 시도해 주세요.");
         setPaying(false);
+        return;
+      }
+      if (response.code !== undefined) {
+        // 결제창 닫힘·PG사 거절 등. 리디렉션 방식과 같은 결과 페이지로 보내 실패 사유(PG 응답 포함)를 저장·표시한다
+        console.error("[checkout] 결제 실패 응답", response);
+        const q = new URLSearchParams({ paymentId: order.orderId, code: response.code });
+        if (response.message) q.set("message", response.message);
+        if (response.pgCode) q.set("pgCode", response.pgCode);
+        if (response.pgMessage) q.set("pgMessage", response.pgMessage);
+        router.push(`/checkout/success?${q.toString()}`);
         return;
       }
       router.push(`/checkout/success?paymentId=${encodeURIComponent(response.paymentId)}`);

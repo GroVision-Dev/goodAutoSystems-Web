@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { invoiceOrderName } from "@/lib/billing";
 import { syncPaymentFromPortOne, type PaymentSyncResult } from "@/lib/payment-sync";
+import { formatPaymentFailure } from "@/lib/payment-failure";
 
 export const metadata = { title: "결제 완료" };
 
@@ -11,11 +12,8 @@ interface SearchParams {
   paymentId?: string;
   code?: string;
   message?: string;
-}
-
-/** 포트원 오류 코드는 표시용으로 영문·숫자·밑줄만 남긴다 */
-function safeCode(code: string) {
-  return code.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
+  pgCode?: string;
+  pgMessage?: string;
 }
 
 export default async function CheckoutSuccessPage({
@@ -26,7 +24,7 @@ export default async function CheckoutSuccessPage({
   const session = await auth();
   if (!session) redirect("/login");
 
-  const { paymentId, code, message } = await searchParams;
+  const { paymentId, code, message, pgCode, pgMessage } = await searchParams;
   if (!paymentId) {
     return <ResultCard ok={false} message="결제 정보가 올바르지 않습니다." />;
   }
@@ -60,21 +58,22 @@ export default async function CheckoutSuccessPage({
     );
   }
 
-  // 리디렉션 방식에서 결제 실패 시 포트원이 code/message를 붙여 돌려보낸다.
-  // 결제 대기 주문만 실패로 바꾸고(취소·환불된 주문은 건드리지 않음), 화면에는 URL의 문구를 그대로 띄우지 않는다.
+  // 결제 실패 시 포트원이 code/message(+PG사 pgCode/pgMessage)를 쿼리로 붙여 돌려보낸다.
+  // 결제 대기 주문만 실패로 바꾸고(취소·환불된 주문은 건드리지 않음), 화면에는 정리한 값만 띄운다.
   if (code) {
+    const failure = formatPaymentFailure({ code, message, pgCode, pgMessage });
+    console.warn("[checkout] 결제 실패", orderId, failure.failReason);
     await prisma.order.updateMany({
       where: { orderId, status: "PENDING" },
-      data: {
-        status: "FAILED",
-        failReason: (message ?? `결제 실패 (${safeCode(code)})`).slice(0, 200),
-      },
+      data: { status: "FAILED", failReason: failure.failReason },
     });
     return (
       <ResultCard
         ok={false}
         message="결제가 완료되지 않았습니다. 다시 시도해 주세요."
-        code={safeCode(code)}
+        code={failure.code}
+        pgCode={failure.pgCode}
+        pgMessage={failure.pgMessage}
       />
     );
   }
@@ -122,12 +121,16 @@ function ResultCard({
   productCategory,
   title,
   code,
+  pgCode,
+  pgMessage,
 }: {
   ok: boolean;
   message: string;
   productCategory?: string;
   title?: string;
   code?: string;
+  pgCode?: string;
+  pgMessage?: string;
 }) {
   return (
     <div className="mx-auto max-w-md px-4 py-24">
@@ -144,6 +147,11 @@ function ResultCard({
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">{message}</p>
         {code && <p className="mt-2 text-xs text-muted">오류 코드: {code}</p>}
+        {(pgCode || pgMessage) && (
+          <p className="mt-1 text-xs text-muted">
+            결제사 응답: {[pgCode, pgMessage].filter(Boolean).join(" · ")}
+          </p>
+        )}
         <div className="mt-8 flex flex-col gap-3">
           {ok ? (
             <>
